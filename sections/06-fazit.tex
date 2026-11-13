@@ -1,5 +1,139 @@
+
 % !TeX root = ../main.tex
+
 \section{Fazit}\label{sec:fazit}
-\todo{Leitfrage beantworten, wichtigste Erkenntnisse zusammenführen und
- Grenzen des Papers benennen. Optional kurzer Ausblick. Keine neuen Beweise
- oder unvorbereiteten technischen Begriffe einführen.}
+
+Ziel dieser Arbeit war es, die Funktionsweise des
+Schnorr-Identifikationsprotokolls zu untersuchen,
+seine mathematischen Sicherheitseigenschaften zu
+erläutern und seine Eignung für praktische
+Authentifizierungsverfahren zu bewerten.
+
+Die Untersuchung zeigt, dass das Schnorr-Protokoll
+eine mathematisch effiziente Möglichkeit bietet,
+die Kenntnis eines geheimen Schlüssels nachzuweisen,
+ohne diesen gegenüber der prüfenden Partei
+offenzulegen. Die Grundlage hierfür bilden die
+Eigenschaften zyklischer Gruppen sowie die
+angenommene Schwierigkeit des diskreten
+Logarithmusproblems.
+
+Durch die Kombination aus Commitment, Challenge
+und Response entsteht ein interaktives
+Identifikationsverfahren, dessen Korrektheit
+mathematisch nachvollzogen werden kann.
+Die Betrachtung der Vollständigkeit, der speziellen
+Wissensextraktion und der Honest-Verifier-Zero-Knowledge-
+Eigenschaft verdeutlicht, weshalb das Verfahren
+einen kryptografischen Wissensnachweis ermöglicht.
+
+Die Aufwandsabschätzung hat gezeigt, dass zwischen
+dem Rechenaufwand der legitimen Teilnehmer und
+dem generischen Aufwand zur Berechnung des
+geheimen Schlüssels ein erheblicher Unterschied
+besteht. Während die reguläre Protokollausführung
+mit wenigen Gruppenexponentiationen auskommt,
+benötigen generische Angriffsverfahren wie
+Baby-Step--Giant-Step und Pollard-Rho einen
+Aufwand in der Größenordnung von
+$\mathcal{O}(\sqrt{q})$ Gruppenoperationen.
+
+Gleichzeitig wurde deutlich, dass die Sicherheit
+des Verfahrens nicht ausschließlich von der
+Gruppenordnung abhängt. Auch die mathematische
+Struktur der verwendeten Gruppe, die Qualität
+der Zufallszahlenerzeugung und die korrekte
+Implementierung sind entscheidend. Insbesondere
+die Wiederverwendung temporärer Zufallswerte
+kann unabhängig von der Stärke der gewählten
+Gruppenparameter zur vollständigen Offenlegung
+des geheimen Schlüssels führen.
+
+Aus Sicht des Identity and Access Managements
+liegt ein wesentlicher Vorteil darin, dass
+eine Authentifizierung ohne Übertragung eines
+langfristigen gemeinsamen Geheimnisses
+ermöglicht wird. Der Verifier benötigt zur
+Überprüfung lediglich den öffentlichen Schlüssel
+des Provers und die während des Protokolls
+ausgetauschten Werte.
+
+Das Schnorr-Identifikationsprotokoll stellt
+jedoch kein vollständiges Identitäts- und
+Zugriffsmanagementsystem dar. Eine sichere
+Zuordnung öffentlicher Schlüssel zu Identitäten,
+der Schutz privater Schlüssel sowie geeignete
+Mechanismen zur Verwaltung und zum Widerruf
+von Berechtigungen bleiben zusätzliche
+Voraussetzungen.
+
+Auch gegenüber aktiven Angreifern besitzt das
+ursprüngliche Protokoll Einschränkungen.
+Insbesondere ergibt sich aus der Verwendung
+einer frischen Challenge kein automatischer
+Schutz vor Relay-Angriffen. Die gezeigte
+Zero-Knowledge-Eigenschaft gegenüber einem
+ehrlichen Verifier darf daher nicht mit einer
+uneingeschränkten Sicherheit gegenüber
+beliebigen Angreifern gleichgesetzt werden.
+
+Die praktische Bedeutung des Schnorr-Protokolls
+liegt sowohl in seiner eigenständigen Verwendung
+als Identifikationsverfahren als auch in seiner
+Rolle als mathematische Grundlage weiterführender
+kryptografischer Verfahren. Nichtinteraktive
+Wissensnachweise, passwortauthentifizierte
+Schlüsselaustauschverfahren und Schnorr-Signaturen
+verdeutlichen die Vielseitigkeit dieses Ansatzes.
+
+Für spezialisierte kryptografische Anwendungen,
+in denen die Kenntnis eines diskreten Logarithmus
+nachgewiesen werden muss, stellt das Verfahren
+einen geeigneten und effizienten Baustein dar.
+Für allgemeine Authentifizierungssysteme,
+insbesondere im Web, sind hingegen etablierte
+und standardisierte Verfahren wie WebAuthn
+aufgrund ihrer zusätzlichen Sicherheitsmechanismen
+und besseren Interoperabilität häufig vorzuziehen.
+
+Die vorliegende Arbeit beschränkt sich auf eine
+theoretische Untersuchung des Protokolls und
+seiner Sicherheitseigenschaften. Die verwendeten
+numerischen Beispiele dienen ausschließlich der
+Veranschaulichung. Die durchgeführten
+Aufwandsabschätzungen beruhen auf vereinfachten
+Modellannahmen und stellen keine experimentellen
+Messungen realer Angriffssysteme dar. Eine
+vollständige Sicherheitsanalyse gegenüber
+sämtlichen Angreifermodellen sowie eine
+Untersuchung konkreter Implementierungen
+waren nicht Gegenstand dieser Arbeit.
+
+Als weiterführende Untersuchung bietet sich
+eine praktische Implementierung des
+Schnorr-Identifikationsprotokolls mit geeigneten
+kryptografischen Gruppenparametern an.
+Dabei könnten insbesondere die tatsächlichen
+Ausführungszeiten, der Kommunikationsaufwand
+und die Unterschiede zwischen einer
+Realisierung in endlichen Körpern und auf
+elliptischen Kurven untersucht werden.
+
+Darüber hinaus stellt die fehlende
+Postquantensicherheit eine langfristige
+Einschränkung dar. Die Entwicklung und
+Untersuchung quantenresistenter
+Authentifizierungsverfahren ist daher
+für zukünftige Anwendungen von Bedeutung.
+
+Zusammenfassend lässt sich feststellen, dass
+das Schnorr-Identifikationsprotokoll unter
+geeigneten mathematischen und technischen
+Voraussetzungen ein effizientes Verfahren
+zum Nachweis kryptografischen Wissens darstellt.
+Seine besondere Bedeutung liegt in der
+Verbindung einer vergleichsweise einfachen
+mathematischen Struktur mit formal
+untersuchbaren Sicherheitseigenschaften
+sowie seiner vielseitigen Verwendung als
+Grundlage moderner kryptografischer Verfahren.
