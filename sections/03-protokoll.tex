@@ -1,28 +1,1006 @@
+
 % !TeX root = ../main.tex
+
 \section{Die Schnorr-Identifikation}\label{sec:protokoll}
+
+Das Schnorr-Identifikationsprotokoll ist ein interaktives
+kryptografisches Verfahren, mit dem eine Partei die Kenntnis
+eines geheimen Schlüssels nachweisen kann, ohne diesen
+gegenüber einer anderen Partei offenzulegen.
+
+Das Verfahren basiert auf dem in
+Abschnitt~\ref{sec:grundlagen} beschriebenen diskreten
+Logarithmusproblem. Es handelt sich um ein sogenanntes
+Challenge-Response-Verfahren, bei dem die Authentifizierung
+durch den Austausch von drei Nachrichten erfolgt.
+
+Die beweisende Partei wird im Folgenden als \emph{Prover}
+und die prüfende Partei als \emph{Verifier} bezeichnet.
+
+
 \subsection{Parameter und Schlüsselerzeugung}
-\todo{Öffentliche Parameter, Schlüsselwahl und Voraussetzungen beschreiben.
- Die Notation aus Abschnitt~\ref{sec:grundlagen} verwenden.}
+
+Die Grundlage des Schnorr-Identifikationsprotokolls bildet
+eine endliche zyklische Gruppe
+\[
+    \G=\langle g\rangle
+\]
+mit primer Ordnung $q$ und einem Generator $g$.
+
+Für die Realisierung in einer multiplikativen Untergruppe
+von $\Z_p^*$ werden zwei Primzahlen $p$ und $q$ gewählt,
+für die
+\[
+    q\mid(p-1)
+\]
+gilt. Der Generator $g$ besitzt dabei die Ordnung $q$,
+sodass
+\[
+    g^q\equiv 1\pmod p
+    \qquad\text{und}\qquad
+    g\neq 1
+\]
+gelten.
+
+Die Parameter $p$, $q$ und $g$ sind öffentlich bekannt
+und müssen nicht geheim gehalten werden. Sie sind jedoch
+so zu wählen, dass das diskrete Logarithmusproblem in
+der verwendeten Gruppe praktisch nicht effizient lösbar
+ist.
+
+\paragraph{Schlüsselerzeugung.}
+
+Der Prover erzeugt seinen geheimen Schlüssel $x$, indem
+er einen Wert gleichverteilt aus den von null verschiedenen
+Elementen von $\Z_q$ auswählt:
+\[
+    x\xleftarrow{\$}\Z_q\setminus\{0\}.
+\]
+
+Anschließend berechnet er den zugehörigen öffentlichen
+Schlüssel
+\[
+    y=g^x.
+\]
+
+Bei der konkreten Realisierung in einer Untergruppe von
+$\Z_p^*$ erfolgt die Berechnung durch
+\[
+    y=g^x\bmod p.
+\]
+
+Damit besteht das Schlüsselpaar aus
+\begin{align*}
+    x &\quad\text{(geheimer Schlüssel)},\\
+    y &\quad\text{(öffentlicher Schlüssel)}.
+\end{align*}
+
+Der geheime Schlüssel verbleibt ausschließlich beim Prover.
+Der öffentliche Schlüssel wird dem Verifier zur Verfügung
+gestellt und kann beispielsweise während einer Registrierung
+einer bestimmten Benutzeridentität zugeordnet werden.
+
+Diese Zuordnung muss vertrauenswürdig erfolgen. Das
+Schnorr-Identifikationsprotokoll weist zunächst lediglich
+die Kenntnis des zu einem öffentlichen Schlüssel gehörenden
+diskreten Logarithmus nach. Eine Aussage über die tatsächliche
+Identität einer Person ist nur möglich, wenn der öffentliche
+Schlüssel zuvor zuverlässig mit dieser Identität verknüpft
+wurde.
+
+Die öffentlichen Parameter und der öffentliche Schlüssel
+müssen vor ihrer Verwendung auf Gültigkeit überprüft werden.
+Insbesondere muss sichergestellt werden, dass $y$ ein
+zulässiges Element der vorgesehenen Untergruppe ist.
+
+
 \subsection{Ablauf des Drei-Schritt-Protokolls}
-\todo{Die folgenden Formeln in eigenen Worten erläutern: Wer kennt welche
- Werte, wer sendet was, und wann wird akzeptiert? Zufallswerte gleichverteilt wählen.}
+
+Das Schnorr-Identifikationsprotokoll besteht aus drei
+aufeinanderfolgenden Nachrichten:
+
+\begin{enumerate}
+    \item Commitment des Provers,
+    \item Challenge des Verifiers,
+    \item Response des Provers.
+\end{enumerate}
+
+Ein Protokoll mit dieser Struktur und den später beschriebenen
+Sicherheitseigenschaften wird als Sigma-Protokoll
+($\Sigma$-Protokoll) bezeichnet.
+
+Zu Beginn der Protokollausführung kennen beide Parteien
+die öffentlichen Parameter und den öffentlichen Schlüssel
+$y$. Der geheime Schlüssel $x$ ist ausschließlich dem
+Prover bekannt.
+
+\subsubsection*{Schritt 1: Commitment}
+
+Der Prover wählt zunächst einen frischen Zufallswert
+$r$ gleichverteilt aus $\Z_q$:
+\[
+    r\xleftarrow{\$}\Z_q.
+\]
+
+Dieser temporäre Zufallswert wird auch als Nonce bezeichnet.
+Anschließend berechnet der Prover das Commitment
+\[
+    t=g^r.
+\]
+
+Für die Realisierung in $\Z_p^*$ gilt entsprechend
+\[
+    t=g^r\bmod p.
+\]
+
+Der Prover sendet ausschließlich das Commitment $t$ an
+den Verifier. Der zugrunde liegende Zufallswert $r$
+wird nicht übertragen und muss geheim bleiben.
+
+Das Commitment legt den Prover auf einen bestimmten
+Zufallswert fest, bevor ihm die Challenge des Verifiers
+bekannt ist.
+
+\subsubsection*{Schritt 2: Challenge}
+
+Nach Erhalt des Commitments überprüft der Verifier dessen
+Gültigkeit und wählt anschließend eine Challenge $c$
+gleichverteilt aus $\Z_q$:
+\[
+    c\xleftarrow{\$}\Z_q.
+\]
+
+Die Challenge wird an den Prover übertragen.
+
+Entscheidend ist, dass die Challenge erst nach Erhalt
+des Commitments gewählt wird und für den Prover im Voraus
+nicht vorhersagbar ist.
+
+Dadurch soll verhindert werden, dass ein Teilnehmer ohne
+Kenntnis des geheimen Schlüssels bereits vor Beginn
+der Prüfung ein passendes Transkript vorbereitet.
+
+\subsubsection*{Schritt 3: Response}
+
+Nach Erhalt der Challenge berechnet der Prover unter
+Verwendung seines geheimen Schlüssels $x$ und des zuvor
+gewählten Zufallswertes $r$ die Response
+\[
+    s=(r+cx)\bmod q.
+\]
+
+Anschließend sendet der Prover den Wert $s$ an den Verifier.
+
+Der geheime Schlüssel $x$ sowie der temporäre Zufallswert
+$r$ werden während des gesamten Protokollablaufs nicht
+übertragen.
+
+Die drei Nachrichten lassen sich somit durch folgende
+Gleichungen zusammenfassen:
 \begin{align}
-  t &= g^r && \text{Commitment der beweisenden Partei},\\
-  c &\xleftarrow{\$} \Z_q && \text{Challenge der prüfenden Partei},\\
-  s &= r+cx \pmod q && \text{Response der beweisenden Partei}.
+    t &= g^r
+       && \text{Commitment},\\
+    c &\xleftarrow{\$}\Z_q
+       && \text{Challenge},\\
+    s &= (r+cx)\bmod q
+       && \text{Response}.
 \end{align}
-Die Prüfgleichung in dieser Notation lautet
+
+\subsubsection*{Verifikation}
+
+Nach Erhalt der Response besitzt der Verifier sämtliche
+für die Prüfung benötigten öffentlichen Werte.
+
+Er überprüft, ob die erhaltenen Werte gültig sind und
+ob folgende Gleichung erfüllt ist:
 \begin{equation}\label{eq:pruefung}
-  g^s \stackrel{?}{=} t\,y^c.
+    g^s\stackrel{?}{=}t\,y^c.
 \end{equation}
+
+Im Fall einer multiplikativen Untergruppe von $\Z_p^*$
+lautet die Prüfgleichung
+\[
+    g^s\stackrel{?}{\equiv}t\,y^c\pmod p.
+\]
+
+Sind die empfangenen Werte gültig und ist die Gleichung
+erfüllt, akzeptiert der Verifier den Nachweis. Andernfalls
+wird die Authentifizierung abgelehnt.
+
+\subsubsection*{Darstellung des Nachrichtenflusses}
+
+Der vollständige Nachrichtenfluss zwischen Prover und
+Verifier ist in Abbildung~\ref{fig:schnorr-ablauf}
+dargestellt.
+
+\begin{figure}[htbp]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{ccc}
+        \toprule
+        \textbf{Prover} &
+        &
+        \textbf{Verifier}\\
+        \midrule
+        Kenntnis von $x$ &
+        &
+        Kenntnis von $y=g^x$\\
+        $r\xleftarrow{\$}\Z_q$ &
+        & \\
+        $t=g^r$ &
+        $\xrightarrow{\quad t\quad}$ &
+        \\
+        &
+        $\xleftarrow{\quad c\quad}$ &
+        $c\xleftarrow{\$}\Z_q$\\
+        $s=(r+cx)\bmod q$ &
+        $\xrightarrow{\quad s\quad}$ &
+        \\
+        &
+        &
+        $g^s\stackrel{?}{=}t\,y^c$\\
+        \bottomrule
+    \end{tabular}
+    \caption{Nachrichtenfluss des
+    Schnorr-Identifikationsprotokolls}
+    \label{fig:schnorr-ablauf}
+\end{figure}
+
+Die während einer Protokollausführung übertragenen
+Nachrichten bilden gemeinsam das sogenannte Transkript
+\[
+    (t,c,s).
+\]
+
+Ein Transkript wird als akzeptierend bezeichnet, wenn
+seine Werte gültig sind und die
+Prüfgleichung~\eqref{eq:pruefung} erfüllt ist.
+
+
 \subsection{Korrektheit}
-\todo{Durch Einsetzen zeigen, warum ehrliche Parteien die
- Gleichung~\eqref{eq:pruefung} erfüllen. Dieser kurze Beweis sollte im Paper stehen.}
+
+Die Korrektheit des Schnorr-Identifikationsprotokolls
+ergibt sich aus den algebraischen Eigenschaften der
+verwendeten zyklischen Gruppe.
+
+Es wird angenommen, dass beide Parteien das Protokoll
+ordnungsgemäß ausführen und der Prover den geheimen
+Schlüssel $x$ kennt.
+
+Aus der Definition des öffentlichen Schlüssels
+\[
+    y=g^x
+\]
+sowie des Commitments
+\[
+    t=g^r
+\]
+und der Response
+\[
+    s=(r+cx)\bmod q
+\]
+folgt aufgrund der Gruppenordnung $q$:
+\begin{align}
+    g^s
+        &=g^{r+cx}\\
+        &=g^r\cdot g^{cx}\\
+        &=g^r\cdot(g^x)^c\\
+        &=t\cdot y^c.
+\end{align}
+
+Somit ist die Prüfgleichung
+\[
+    g^s=t\cdot y^c
+\]
+für einen ehrlich erzeugten Protokollablauf erfüllt.
+
+Die Reduktion der Response modulo $q$ verändert das
+resultierende Gruppenelement nicht, da $g^q=e$ gilt.
+
+Damit ist gezeigt, dass ein Prover, der den geheimen
+Schlüssel kennt und das Protokoll korrekt ausführt,
+die Prüfung eines ehrlichen Verifiers erfolgreich
+bestehen kann.
+
+Diese Eigenschaft wird als Vollständigkeit
+(\emph{Completeness}) bezeichnet.
+
+
+\subsection{Numerisches Beispiel}
+
+Zur Veranschaulichung des Protokollablaufs werden die
+bereits in Abschnitt~\ref{sec:grundlagen} eingeführten
+Parameter verwendet:
+\[
+    p=23,\qquad q=11,\qquad g=2.
+\]
+
+Die Gruppe $\G=\langle 2\rangle$ besitzt modulo $23$
+die Ordnung $11$.
+
+\paragraph{Schlüsselerzeugung.}
+
+Der Prover wählt den geheimen Schlüssel
+\[
+    x=7.
+\]
+
+Der zugehörige öffentliche Schlüssel ergibt sich aus
+\begin{align*}
+    y&=g^x\bmod p\\
+     &=2^7\bmod 23\\
+     &=13.
+\end{align*}
+
+\paragraph{Commitment.}
+
+Für die Protokollausführung wird beispielhaft der
+Zufallswert
+\[
+    r=4
+\]
+gewählt.
+
+Das Commitment lautet damit
+\begin{align*}
+    t&=g^r\bmod p\\
+     &=2^4\bmod 23\\
+     &=16.
+\end{align*}
+
+Der Prover sendet den Wert $t=16$ an den Verifier.
+
+\paragraph{Challenge.}
+
+Der Verifier wählt beispielhaft die Challenge
+\[
+    c=3
+\]
+und sendet diese an den Prover.
+
+\paragraph{Response.}
+
+Der Prover berechnet die Response
+\begin{align*}
+    s&=(r+cx)\bmod q\\
+     &=(4+3\cdot 7)\bmod 11\\
+     &=25\bmod 11\\
+     &=3.
+\end{align*}
+
+Der berechnete Wert $s=3$ wird an den Verifier übertragen.
+
+\paragraph{Verifikation.}
+
+Der Verifier überprüft die Gleichung
+\[
+    g^s\stackrel{?}{\equiv}t\,y^c\pmod p.
+\]
+
+Für die linke Seite ergibt sich
+\[
+    g^s=2^3\bmod 23=8.
+\]
+
+Die rechte Seite liefert
+\begin{align*}
+    t\,y^c\bmod p
+        &=16\cdot 13^3\bmod 23\\
+        &=35152\bmod 23\\
+        &=8.
+\end{align*}
+
+Da beide Seiten übereinstimmen, akzeptiert der Verifier
+den Nachweis:
+\[
+    8=8.
+\]
+
+Die während der Protokollausführung verwendeten Werte
+sind in Tabelle~\ref{tab:schnorr-beispiel} zusammengefasst.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lrl}
+        \toprule
+        Symbol & Wert & Bedeutung\\
+        \midrule
+        $p$ & 23 & Primzahl als Modulus\\
+        $q$ & 11 & Gruppenordnung\\
+        $g$ & 2  & Generator\\
+        $x$ & 7  & Geheimer Schlüssel\\
+        $y$ & 13 & Öffentlicher Schlüssel\\
+        $r$ & 4  & Temporärer Zufallswert\\
+        $t$ & 16 & Commitment\\
+        $c$ & 3  & Challenge\\
+        $s$ & 3  & Response\\
+        \bottomrule
+    \end{tabular}
+    \caption{Beispiel einer erfolgreichen
+    Schnorr-Identifikation}
+    \label{tab:schnorr-beispiel}
+\end{table}
+
+Das resultierende akzeptierende Transkript lautet
+\[
+    (t,c,s)=(16,3,3).
+\]
+
+Der geheime Schlüssel $x$ wurde während der
+Protokollausführung nicht direkt an den Verifier übertragen.
+
+Aufgrund der bewusst kleinen Parameter könnte der geheime
+Schlüssel in diesem Beispiel allerdings durch Berechnung
+des diskreten Logarithmus leicht bestimmt werden.
+Das Beispiel dient daher ausschließlich der Veranschaulichung
+und stellt keine kryptografisch sichere Implementierung dar.
+
+
 \subsection{Sicherheitsidee und Grenzen}
-\todo{Vollständigkeit, Wissenseigenschaft und Zero Knowledge für einen
- ehrlichen Verifier voneinander unterscheiden. Zwei akzeptierte Transkripte
- mit gleichem Commitment und verschiedenen Challenges als Beweisidee erläutern.
- Weitergehende Beweise mit präziser Quellenstelle belegen.}
-\todo{Frische Zufallswerte, unvorhersehbare Challenges, Parameterprüfung und
- Angreifermodell diskutieren. Keine pauschale Behauptung vollständiger Sicherheit
- allein aus der Schwierigkeit des diskreten Logarithmus ableiten.}
+
+Das Schnorr-Identifikationsprotokoll besitzt drei
+wesentliche Eigenschaften, die für Sigma-Protokolle
+charakteristisch sind:
+
+\begin{itemize}
+    \item Vollständigkeit (\emph{Completeness}),
+    \item spezielle Wissensextraktion
+          (\emph{Special Soundness}),
+    \item Zero Knowledge gegenüber einem ehrlichen
+          Verifier (\emph{Honest-Verifier Zero Knowledge}).
+\end{itemize}
+
+Diese Eigenschaften beschreiben unterschiedliche Aspekte
+der Protokollsicherheit und müssen voneinander
+unterschieden werden.
+
+\subsubsection*{Vollständigkeit}
+
+Die Vollständigkeit besagt, dass ein ehrlicher Prover,
+der den geheimen Schlüssel kennt, einen ehrlichen
+Verifier von dieser Kenntnis überzeugen kann.
+
+Wie im Abschnitt zur Korrektheit gezeigt wurde, gilt
+für eine ordnungsgemäße Protokollausführung stets
+\[
+    g^s=t\,y^c.
+\]
+
+Unter der Voraussetzung gültiger Parameter und einer
+korrekten Ausführung akzeptiert der Verifier daher
+den Nachweis mit Wahrscheinlichkeit $1$.
+
+Die Vollständigkeit ist somit eine Aussage über das
+Verhalten ehrlicher Teilnehmer und noch kein Nachweis
+dafür, dass sich ein Angreifer nicht erfolgreich
+authentifizieren kann.
+
+
+\subsubsection*{Spezielle Wissensextraktion}
+
+Die spezielle Wissensextraktion beschreibt eine
+Eigenschaft, die für den Nachweis der Kenntnis des
+geheimen Schlüssels wesentlich ist.
+
+Angenommen, es liegen zwei akzeptierende Transkripte
+\[
+    (t,c_1,s_1)
+    \qquad\text{und}\qquad
+    (t,c_2,s_2)
+\]
+mit demselben Commitment $t$, jedoch unterschiedlichen
+Challenges
+\[
+    c_1\neq c_2
+\]
+vor.
+
+Da beide Transkripte akzeptierend sind, gilt
+\begin{align}
+    g^{s_1}&=t\,y^{c_1},\\
+    g^{s_2}&=t\,y^{c_2}.
+\end{align}
+
+Durch Multiplikation der ersten Gleichung mit dem
+Inversen der zweiten Gleichung ergibt sich
+\[
+    g^{s_1-s_2}=y^{c_1-c_2}.
+\]
+
+Mit $y=g^x$ folgt
+\[
+    g^{s_1-s_2}=g^{x(c_1-c_2)}.
+\]
+
+Da $g$ die Ordnung $q$ besitzt, müssen die Exponenten
+modulo $q$ übereinstimmen:
+\[
+    s_1-s_2\equiv x(c_1-c_2)\pmod q.
+\]
+
+Weil $q$ prim ist und $c_1\neq c_2$ gilt, besitzt
+$c_1-c_2$ ein multiplikatives Inverses modulo $q$.
+
+Durch Multiplikation mit diesem Inversen erhält man
+\begin{equation}\label{eq:schnorr-extraktion}
+    x=(s_1-s_2)(c_1-c_2)^{-1}\bmod q.
+\end{equation}
+
+Aus zwei akzeptierenden Transkripten mit identischem
+Commitment und unterschiedlichen Challenges kann somit
+der geheime Schlüssel effizient berechnet werden.
+
+Diese Eigenschaft wird in einem theoretischen
+Sicherheitsbeweis durch einen sogenannten
+Wissensextraktor genutzt.
+
+Der Wissensextraktor betrachtet eine Protokollausführung
+und versetzt den untersuchten Prover gedanklich in den
+Zustand unmittelbar nach dem Senden des Commitments
+zurück. Anschließend wird eine andere Challenge
+verwendet.
+
+Kann der Prover mit hinreichend hoher Wahrscheinlichkeit
+gültige Antworten auf unterschiedliche Challenges
+für dasselbe Commitment erzeugen, lässt sich daraus
+der zum öffentlichen Schlüssel gehörende diskrete
+Logarithmus extrahieren.
+
+Dieses Verfahren wird als \emph{Rewinding} bezeichnet.
+Es handelt sich um eine Technik des Sicherheitsbeweises
+und nicht um einen regulären Schritt des eigentlichen
+Identifikationsprotokolls.
+
+Die spezielle Wissensextraktion bildet damit eine
+Grundlage für die Interpretation des Schnorr-Protokolls
+als Wissensnachweis.
+
+Für eine gleichverteilt aus $\Z_q$ gewählte Challenge
+beträgt der sogenannte Wissensfehler des Sigma-Protokolls
+\[
+    \varepsilon=\frac{1}{q}.
+\]
+
+Ein Teilnehmer kann beispielsweise im Voraus eine
+Challenge erraten und ein passendes Transkript
+konstruieren. Unter der Annahme einer unabhängigen
+und gleichverteilten Challenge beträgt die
+Erfolgswahrscheinlichkeit einer solchen Strategie
+genau $1/q$.
+
+Ein Prover, dessen Erfolgswahrscheinlichkeit wesentlich
+über diesem Wissensfehler liegt, kann unter den
+Voraussetzungen des entsprechenden Extraktionsarguments
+zur Berechnung eines gültigen geheimen Schlüssels
+verwendet werden.
+
+Bei ausreichend großer Gruppenordnung und unter der
+Annahme der Schwierigkeit des diskreten Logarithmusproblems
+ergibt sich daraus die Sicherheitsidee des
+Identifikationsverfahrens.
+
+
+\subsubsection*{Honest-Verifier Zero Knowledge}
+
+Die Zero-Knowledge-Eigenschaft beschreibt, dass ein
+Nachweis keine zusätzlichen Informationen über das
+geheime Wissen des Provers offenlegen soll.
+
+Für das Schnorr-Identifikationsprotokoll lässt sich
+diese Eigenschaft zunächst für einen ehrlichen Verifier
+zeigen.
+
+Ein ehrlicher Verifier hält sich an die
+Protokollspezifikation und wählt seine Challenge
+insbesondere unabhängig und gleichverteilt aus
+dem vorgesehenen Wertebereich.
+
+Die Beweisidee besteht darin, einen Simulator zu
+konstruieren, der ein akzeptierendes Transkript
+erzeugen kann, ohne den geheimen Schlüssel $x$
+zu kennen.
+
+Der Simulator kennt lediglich die öffentlichen Parameter
+und den öffentlichen Schlüssel $y$.
+
+Er führt folgende Schritte aus:
+\begin{enumerate}
+    \item Wähle eine Challenge $c$ gleichverteilt
+    aus $\Z_q$:
+    \[
+        c\xleftarrow{\$}\Z_q.
+    \]
+
+    \item Wähle eine Response $s$ unabhängig und
+    gleichverteilt aus $\Z_q$:
+    \[
+        s\xleftarrow{\$}\Z_q.
+    \]
+
+    \item Berechne das Commitment rückwärts aus
+    der Prüfgleichung:
+    \[
+        t=g^s\cdot y^{-c}.
+    \]
+\end{enumerate}
+
+Der Ausdruck $y^{-c}$ bezeichnet dabei die entsprechende
+inverse Potenz des Gruppenelements $y$.
+
+Der Simulator gibt anschließend das Transkript
+\[
+    (t,c,s)
+\]
+aus.
+
+Dieses Transkript erfüllt die Prüfgleichung, denn
+\begin{align*}
+    t\,y^c
+        &=(g^s\cdot y^{-c})\cdot y^c\\
+        &=g^s.
+\end{align*}
+
+Es handelt sich somit um ein akzeptierendes Transkript,
+obwohl der Simulator den geheimen Schlüssel nicht
+kennt.
+
+Darüber hinaus besitzen die simulierten Transkripte
+dieselbe Wahrscheinlichkeitsverteilung wie die
+Transkripte einer ehrlichen Protokollausführung.
+
+In einer regulären Protokollausführung gilt für jede
+fest gewählte Challenge $c$
+\[
+    s=(r+cx)\bmod q.
+\]
+
+Da $r$ gleichverteilt aus $\Z_q$ gewählt wird, ist
+auch $s$ gleichverteilt in $\Z_q$. Die Addition des
+festen Wertes $cx$ verändert diese Gleichverteilung
+nicht.
+
+Das zugehörige Commitment lässt sich durch
+\[
+    t=g^r
+     =g^{s-cx}
+     =g^s\cdot y^{-c}
+\]
+darstellen.
+
+Damit stimmen die Verteilungen der simulierten und
+der ehrlich erzeugten Transkripte exakt überein.
+
+Dies wird als perfekte Honest-Verifier-Zero-Knowledge-
+Eigenschaft bezeichnet.
+
+Der Verifier erhält aus einer ehrlichen
+Protokollausführung folglich keine zusätzliche
+Information über den geheimen Schlüssel, die nicht
+auch aus den öffentlichen Informationen simuliert
+werden könnte.
+
+Dabei ist zu beachten, dass der öffentliche Schlüssel
+selbst bereits den geheimen Schlüssel mathematisch
+festlegt. Die praktische Geheimhaltung des Schlüssels
+beruht weiterhin auf der Schwierigkeit des diskreten
+Logarithmusproblems.
+
+\paragraph{Abgrenzung zur Wissenseigenschaft.}
+
+Die Möglichkeit, ein akzeptierendes Transkript ohne
+Kenntnis des geheimen Schlüssels zu simulieren, steht
+nicht im Widerspruch zur Wissenseigenschaft des
+Protokolls.
+
+Der Simulator darf zunächst die Challenge und die
+Response auswählen und erst anschließend das passende
+Commitment berechnen.
+
+Während einer tatsächlichen Protokollausführung muss
+der Prover das Commitment jedoch bereits übertragen,
+bevor die Challenge des Verifiers bekannt ist.
+
+Die zeitliche Reihenfolge der Nachrichten ist daher
+ein wesentlicher Bestandteil der Protokollsicherheit.
+
+Ein einzelnes akzeptierendes Transkript stellt deshalb
+für sich allein keinen unabhängig überprüfbaren Beweis
+dar, dass eine bestimmte Person tatsächlich den geheimen
+Schlüssel kennt.
+
+
+\subsubsection*{Bedeutung frischer Zufallswerte}
+
+Die Sicherheit des Schnorr-Identifikationsprotokolls
+setzt voraus, dass für jede Protokollausführung ein
+neuer, unabhängiger und kryptografisch sicherer
+Zufallswert $r$ erzeugt wird.
+
+Wird derselbe Zufallswert in zwei Ausführungen verwendet,
+so entsteht dasselbe Commitment
+\[
+    t=g^r.
+\]
+
+Erhält der Prover dabei zwei unterschiedliche Challenges
+$c_1$ und $c_2$, ergeben sich die Responses
+\begin{align}
+    s_1&=(r+c_1x)\bmod q,\\
+    s_2&=(r+c_2x)\bmod q.
+\end{align}
+
+Durch Subtraktion der beiden Gleichungen fällt der
+Zufallswert $r$ weg:
+\[
+    s_1-s_2\equiv(c_1-c_2)x\pmod q.
+\]
+
+Der geheime Schlüssel kann daher unmittelbar mithilfe
+von Gleichung~\eqref{eq:schnorr-extraktion} berechnet
+werden.
+
+Die Wiederverwendung eines Zufallswertes kann somit
+zur vollständigen Kompromittierung des langfristigen
+geheimen Schlüssels führen.
+
+\paragraph{Numerisches Beispiel einer
+Nonce-Wiederverwendung.}
+
+Es werden erneut die Beispielparameter
+\[
+    p=23,\qquad q=11,\qquad g=2,\qquad x=7
+\]
+verwendet.
+
+Angenommen, der Prover verwendet in zwei verschiedenen
+Protokollausführungen denselben Zufallswert
+\[
+    r=4.
+\]
+
+Das Commitment lautet in beiden Ausführungen
+\[
+    t=2^4\bmod 23=16.
+\]
+
+Für die erste Challenge $c_1=3$ erhält man
+\begin{align*}
+    s_1&=(4+3\cdot 7)\bmod 11\\
+       &=3.
+\end{align*}
+
+Für die zweite Challenge $c_2=5$ ergibt sich
+\begin{align*}
+    s_2&=(4+5\cdot 7)\bmod 11\\
+       &=6.
+\end{align*}
+
+Damit liegen die beiden akzeptierenden Transkripte
+\[
+    (16,3,3)
+    \qquad\text{und}\qquad
+    (16,5,6)
+\]
+vor.
+
+Der geheime Schlüssel kann nun durch
+\begin{align*}
+    x
+        &=(s_1-s_2)(c_1-c_2)^{-1}\bmod q\\
+        &=(3-6)(3-5)^{-1}\bmod 11\\
+        &=(-3)(-2)^{-1}\bmod 11
+\end{align*}
+berechnet werden.
+
+Da
+\[
+    (-2)^{-1}\equiv 5\pmod{11}
+\]
+gilt, ergibt sich
+\begin{align*}
+    x&=(-3)\cdot 5\bmod 11\\
+     &=-15\bmod 11\\
+     &=7.
+\end{align*}
+
+Der ursprüngliche geheime Schlüssel wurde damit
+vollständig rekonstruiert.
+
+Dieses Beispiel verdeutlicht, dass die Sicherheit
+des Protokolls nicht ausschließlich von der Schwierigkeit
+des diskreten Logarithmusproblems abhängt, sondern
+auch von der Qualität und korrekten Verwendung der
+erzeugten Zufallswerte.
+
+Auch die Offenlegung oder Vorhersagbarkeit eines
+einzelnen Zufallswertes kann den geheimen Schlüssel
+gefährden. Für eine von null verschiedene Challenge
+$c$ gilt bei bekanntem $r$
+\[
+    x=(s-r)c^{-1}\bmod q.
+\]
+
+Der temporäre Zufallswert muss daher sowohl während
+als auch nach seiner Verwendung vor unbefugtem
+Zugriff geschützt werden. Insbesondere darf ein
+bereits verwendetes Commitment nicht für die
+Beantwortung weiterer Challenges wiederverwendet
+werden.
+
+
+\subsubsection*{Angreifermodell und weitere
+Sicherheitsgrenzen}
+
+Die beschriebenen mathematischen Eigenschaften gelten
+unter bestimmten Voraussetzungen. Sie erlauben keine
+pauschale Aussage über die Sicherheit jeder praktischen
+Implementierung.
+
+Insbesondere sind folgende Aspekte zu berücksichtigen:
+
+\begin{description}
+
+    \item[Unvorhersehbare Challenges:]
+    Die Challenge muss unabhängig vom Prover und
+    mithilfe eines kryptografisch sicheren
+    Zufallszahlengenerators erzeugt werden.
+    Ist die Challenge vorhersehbar, kann ein Angreifer
+    ein passendes Commitment vorbereiten, ohne den
+    geheimen Schlüssel zu kennen.
+
+    \item[Validierung der Gruppenparameter:]
+    Die verwendeten Parameter müssen die notwendigen
+    mathematischen Voraussetzungen erfüllen.
+    Dazu zählen insbesondere die Primzahleigenschaften
+    von $p$ und $q$, die Teilbarkeitsbedingung
+    $q\mid(p-1)$ sowie die korrekte Ordnung des
+    Generators $g$.
+
+    \item[Validierung der Gruppenelemente:]
+    Öffentliche Schlüssel und Commitments müssen
+    auf ihre Zugehörigkeit zur vorgesehenen Untergruppe
+    überprüft werden.
+
+    Für ein Element $u$ in der multiplikativen
+    Untergruppe müssen insbesondere
+    \[
+        1\leq u\leq p-1
+    \]
+    und
+    \[
+        u^q\equiv 1\pmod p
+    \]
+    gelten.
+
+    Für den öffentlichen Schlüssel ist zusätzlich
+    $y\neq 1$ erforderlich, da der zugehörige
+    diskrete Logarithmus andernfalls öffentlich
+    bekannt wäre.
+
+    \item[Replay-Angriffe:]
+    Ein aufgezeichnetes Transkript kann nicht ohne
+    Weiteres für eine spätere Authentifizierung
+    verwendet werden, da der Verifier eine neue,
+    unabhängige Challenge erzeugt.
+
+    Stimmt die neue Challenge mit der aufgezeichneten
+    Challenge überein, ist ein Replay jedoch grundsätzlich
+    möglich. Bei gleichverteilter Auswahl aus $\Z_q$
+    beträgt die Wahrscheinlichkeit hierfür $1/q$.
+    Die Challenge muss daher einen ausreichend
+    großen Wertebereich besitzen.
+
+    \item[Relay-Angriffe:]
+    Eine frische Challenge verhindert nicht zwangsläufig
+    die Weiterleitung einer laufenden Authentifizierung.
+    Ein Angreifer könnte Nachrichten zwischen einem
+    legitimen Prover und einem Verifier weiterleiten,
+    ohne den geheimen Schlüssel selbst zu kennen.
+
+    Zusätzliche Mechanismen zur Bindung der
+    Authentifizierung an den Kommunikationskanal,
+    die Gegenstelle oder den Anwendungskontext
+    können daher erforderlich sein.
+
+    \item[Manipulierte Verifier:]
+    Die hier gezeigte Zero-Knowledge-Eigenschaft
+    bezieht sich auf einen ehrlichen Verifier.
+    Daraus folgt nicht unmittelbar eine entsprechende
+    Sicherheit gegenüber beliebig vom Protokoll
+    abweichenden Verifiern.
+
+    Weitergehende Aussagen erfordern ein präzises
+    Sicherheitsmodell und entsprechende Beweise.
+
+    \item[Implementierungssicherheit:]
+    Fehler bei der Implementierung, unsichere
+    Zufallszahlengeneratoren, Seitenkanalangriffe
+    oder ein unzureichender Schutz des geheimen
+    Schlüssels können die Sicherheit des Verfahrens
+    beeinträchtigen.
+
+    \item[Quantencomputer:]
+    Die langfristige Sicherheit des Verfahrens
+    hängt von der Schwierigkeit des diskreten
+    Logarithmusproblems ab.
+    Ein hinreichend leistungsfähiger, fehlertoleranter
+    Quantencomputer könnte dieses Problem mithilfe
+    des Shor-Algorithmus effizient lösen.
+
+    Das klassische Schnorr-Identifikationsprotokoll
+    ist daher kein postquantenkryptografisches
+    Verfahren.
+
+\end{description}
+
+
+\subsection{Abgrenzung zu nichtinteraktiven Verfahren}
+
+Das in diesem Abschnitt beschriebene
+Schnorr-Identifikationsprotokoll setzt eine aktive
+Interaktion zwischen Prover und Verifier voraus.
+
+Eine bekannte Erweiterung besteht darin, die zufällige
+Challenge des Verifiers durch einen aus öffentlichen
+Informationen berechneten kryptografischen Hashwert
+zu ersetzen. Dieser Ansatz wird als
+Fiat-Shamir-Transformation bezeichnet.
+
+Abstrakt kann eine solche Challenge beispielsweise
+durch
+\[
+    c=H(g,y,t,\text{Kontext})\bmod q
+\]
+dargestellt werden.
+
+Der Prover kann dadurch die Challenge selbst berechnen,
+ohne zuvor eine Nachricht des Verifiers erhalten
+zu müssen.
+
+Die konkrete Definition und Kodierung der Hash-Eingaben
+sowie die Abbildung des Hashwertes in den vorgesehenen
+Challenge-Bereich sind dabei sicherheitsrelevant.
+
+Diese Transformation ermöglicht unter geeigneten
+Annahmen die Konstruktion nichtinteraktiver
+Wissensnachweise und bildet außerdem eine Grundlage
+für Schnorr-Signaturverfahren.
+
+Bei einer digitalen Signatur werden zusätzlich die
+zu signierende Nachricht und gegebenenfalls weitere
+Kontextinformationen in die Berechnung der Challenge
+einbezogen.
+
+Die Sicherheit einer solchen Erweiterung muss jedoch
+gesondert untersucht werden. Die Eigenschaften des
+interaktiven Protokolls können nicht ohne weitere
+Annahmen unmittelbar auf jede nichtinteraktive
+Variante übertragen werden.
+
+
+\subsection{Zusammenfassung}
+
+Das Schnorr-Identifikationsprotokoll ermöglicht den
+Nachweis der Kenntnis eines geheimen diskreten
+Logarithmus, ohne diesen direkt an den Verifier
+zu übertragen.
+
+Die Kombination aus Commitment, Challenge und
+Response gewährleistet bei einer korrekten
+Protokollausführung die Vollständigkeit des Verfahrens.
+
+Die spezielle Wissensextraktion zeigt, dass aus
+zwei akzeptierenden Transkripten mit identischem
+Commitment und unterschiedlichen Challenges der
+geheime Schlüssel berechnet werden kann.
+
+Gleichzeitig lässt sich durch Simulation nachweisen,
+dass eine ehrliche Protokollausführung keine
+zusätzlichen Informationen über den geheimen
+Schlüssel offenlegt.
+
+Die Sicherheit des Verfahrens beruht somit auf dem
+Zusammenspiel der mathematischen Eigenschaften des
+Protokolls, der Schwierigkeit des diskreten
+Logarithmusproblems und der korrekten praktischen
+Implementierung.
