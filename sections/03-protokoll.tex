@@ -1,0 +1,28 @@
+% !TeX root = ../main.tex
+\section{Die Schnorr-Identifikation}\label{sec:protokoll}
+\subsection{Parameter und Schlüsselerzeugung}
+\todo{Öffentliche Parameter, Schlüsselwahl und Voraussetzungen beschreiben.
+ Die Notation aus Abschnitt~\ref{sec:grundlagen} verwenden.}
+\subsection{Ablauf des Drei-Schritt-Protokolls}
+\todo{Die folgenden Formeln in eigenen Worten erläutern: Wer kennt welche
+ Werte, wer sendet was, und wann wird akzeptiert? Zufallswerte gleichverteilt wählen.}
+\begin{align}
+  t &= g^r && \text{Commitment der beweisenden Partei},\\
+  c &\xleftarrow{\$} \Z_q && \text{Challenge der prüfenden Partei},\\
+  s &= r+cx \pmod q && \text{Response der beweisenden Partei}.
+\end{align}
+Die Prüfgleichung in dieser Notation lautet
+\begin{equation}\label{eq:pruefung}
+  g^s \stackrel{?}{=} t\,y^c.
+\end{equation}
+\subsection{Korrektheit}
+\todo{Durch Einsetzen zeigen, warum ehrliche Parteien die
+ Gleichung~\eqref{eq:pruefung} erfüllen. Dieser kurze Beweis sollte im Paper stehen.}
+\subsection{Sicherheitsidee und Grenzen}
+\todo{Vollständigkeit, Wissenseigenschaft und Zero Knowledge für einen
+ ehrlichen Verifier voneinander unterscheiden. Zwei akzeptierte Transkripte
+ mit gleichem Commitment und verschiedenen Challenges als Beweisidee erläutern.
+ Weitergehende Beweise mit präziser Quellenstelle belegen.}
+\todo{Frische Zufallswerte, unvorhersehbare Challenges, Parameterprüfung und
+ Angreifermodell diskutieren. Keine pauschale Behauptung vollständiger Sicherheit
+ allein aus der Schwierigkeit des diskreten Logarithmus ableiten.}

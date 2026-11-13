@@ -1,0 +1,51 @@
+\documentclass[11pt,a4paper]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx,booktabs}
+\usepackage{xcolor}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{literatur.bib}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Die Schnorr-Identifikation},pdfauthor={Fabian Grebert}}
+%
+% Für die Abgabe auf \entwurffalse setzen. Zuvor alle TODOs abarbeiten.
+\newif\ifentwurf
+\entwurftrue
+\newcommand{\todo}[1]{\ifentwurf\par\smallskip\noindent
+  {\color{blue!60!black}\textbf{Schreibhinweis:} #1}\par\smallskip\fi}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\G}{\mathbb{G}}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{satz}{Satz}[section]
+\theoremstyle{remark}
+\newtheorem{beispiel}{Beispiel}[section]
+
+\title{Die Schnorr-Identifikation}
+\subtitle{Mathematische Grundlagen, Protokoll und praktische Einordnung}
+\author{Fabian Grebert}
+\date{\today} % Vor Abgabe gegebenenfalls festes Datum eintragen.
+%
+\begin{document}
+\maketitle
+\begin{abstract}
+\todo{Zum Schluss schreiben: Problem, Vorgehen und wichtigste Ergebnisse
+in einem kurzen Absatz zusammenfassen. Keine neuen Argumente einführen.}
+\end{abstract}
+\tableofcontents
+\input{sections/01-einleitung}
+\input{sections/02-grundlagen}
+\input{sections/03-protokoll}
+\input{sections/04-praxis}
+\input{sections/05-bewertung}
+\input{sections/06-fazit}
+% Zeigt im Template die Startliteratur. Für die Abgabe entfernen und nur
+% tatsächlich verwendete Quellen mittels \cite{...} im Text zitieren.
+\nocite{schnorr1991,hao2017,wikipedia}
+\printbibliography[heading=bibintoc,title={Literaturverzeichnis}]
+\end{document}
