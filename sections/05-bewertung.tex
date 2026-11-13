@@ -1,11 +1,1029 @@
+
 % !TeX root = ../main.tex
-\section{Vor- und Nachteile sowie Einsatzbedingungen}\label{sec:bewertung}
+
+\section{Vor- und Nachteile sowie Einsatzbedingungen}
+\label{sec:bewertung}
+
+Auf Grundlage der bisherigen Betrachtungen werden in
+diesem Abschnitt die Vor- und Nachteile des
+Schnorr-Identifikationsprotokolls untersucht.
+
+Ziel ist es, zu bewerten, unter welchen Voraussetzungen
+das Verfahren eine geeignete Alternative zu anderen
+Authentifizierungsmechanismen darstellt und welche
+Einschränkungen bei einem praktischen Einsatz
+berücksichtigt werden müssen.
+
+Als Bewertungskriterien werden insbesondere die
+kryptografische Sicherheit, der Rechen- und
+Kommunikationsaufwand, die Anforderungen an die
+Implementierung sowie die Integration in bestehende
+Systeme herangezogen.
+
+
 \subsection{Vorteile}
-\todo{Unter anderem Rechen- und Kommunikationsaufwand sowie Nachweis ohne
- Offenlegung des Geheimnisses bewerten. Jede Aussage begründen oder belegen.}
+
+Das Schnorr-Identifikationsprotokoll besitzt mehrere
+Eigenschaften, die es für kryptografische
+Authentifizierungsverfahren interessant machen.
+
+
+\subsubsection{Nachweis ohne Offenlegung des Geheimnisses}
+
+Ein wesentlicher Vorteil des Schnorr-Protokolls besteht
+darin, dass der Prover die Kenntnis seines geheimen
+Schlüssels $x$ nachweisen kann, ohne diesen an den
+Verifier zu übertragen.
+
+Während einer regulären Protokollausführung werden
+ausschließlich das Commitment $t$, die Challenge $c$
+und die Response $s$ ausgetauscht.
+
+Der geheime Schlüssel $x$ verbleibt beim Prover.
+
+Wie in Abschnitt~\ref{sec:protokoll} gezeigt wurde,
+können die Transkripte einer ehrlichen Protokollausführung
+ohne Kenntnis des geheimen Schlüssels simuliert werden.
+
+Diese Honest-Verifier-Zero-Knowledge-Eigenschaft
+gewährleistet, dass ein ehrlicher Verifier durch die
+Protokollausführung keine zusätzlichen Informationen
+über den geheimen Schlüssel erhält, die nicht bereits
+aus den öffentlichen Informationen ableitbar wären.
+
+Das Verfahren unterscheidet sich dadurch von
+Authentifizierungsmechanismen, bei denen ein gemeinsames
+Geheimnis unmittelbar zur Überprüfung verwendet wird
+\cite[Abschnitte 2.2 und 6]{hao2017}.
+
+Die Sicherheit gegenüber beliebig vom Protokoll
+abweichenden Verifiern folgt daraus allerdings nicht
+unmittelbar.
+
+
+\subsubsection{Keine Speicherung eines gemeinsamen Geheimnisses}
+
+Bei der schlüsselbasierten Schnorr-Identifikation benötigt
+der Verifier lediglich den öffentlichen Schlüssel
+\[
+    y=g^x
+\]
+des Provers.
+
+Im Gegensatz zu einem passwortbasierten
+Authentifizierungsverfahren muss der Verifier weder
+das Passwort des Benutzers noch einen daraus
+abgeleiteten Passwort-Hash speichern.
+
+Wird die Datenbank des Verifiers kompromittiert,
+erhält ein Angreifer im betrachteten Modell daher
+zunächst nur die öffentlichen Schlüssel der Benutzer.
+
+Unter der Annahme der Schwierigkeit des diskreten
+Logarithmusproblems ist es praktisch nicht möglich,
+aus einem solchen öffentlichen Schlüssel effizient
+den zugehörigen geheimen Schlüssel zu berechnen.
+
+Dadurch werden insbesondere Angriffe vermieden,
+bei denen gestohlene Passwort-Hashes durch
+Wörterbuchangriffe oder das systematische Ausprobieren
+wahrscheinlicher Passwörter untersucht werden.
+
+Diese Eigenschaft setzt voraus, dass der geheime
+Schlüssel mit ausreichender Entropie erzeugt wird.
+
+Würde der geheime Exponent unmittelbar aus einem
+schwachen Passwort abgeleitet, könnte ein Angreifer
+mögliche Passwörter ausprobieren und die daraus
+berechneten öffentlichen Schlüssel vergleichen.
+
+Ein zufällig erzeugter kryptografischer Schlüssel
+unterscheidet sich daher wesentlich von einem
+durch einen Menschen gewählten Passwort.
+
+Die Kompromittierung eines Servers bleibt dennoch
+sicherheitsrelevant. Beispielsweise könnte ein
+Angreifer gespeicherte öffentliche Schlüssel
+manipulieren oder bereits authentifizierte
+Sitzungen übernehmen.
+
+
+\subsubsection{Geringer Rechenaufwand}
+
+Ein weiterer Vorteil ist der vergleichsweise geringe
+Rechenaufwand für die legitimen Teilnehmer.
+
+Wie in Abschnitt~\ref{sec:praxis} dargestellt wurde,
+benötigt der Prover zur Berechnung des Commitments
+\[
+    t=g^r
+\]
+im Wesentlichen eine Gruppenexponentiation.
+
+Die anschließende Berechnung der Response
+\[
+    s=(r+cx)\bmod q
+\]
+erfordert lediglich eine modulare Multiplikation
+und eine modulare Addition.
+
+Auch die Verifikation lässt sich durch eine geringe
+Anzahl von Gruppenexponentiationen realisieren.
+
+Bei Verwendung effizienter Exponentiationsverfahren
+wächst der Rechenaufwand der legitimen Teilnehmer
+asymptotisch mit
+\[
+    \mathcal{O}(\log q).
+\]
+
+Demgegenüber benötigen bekannte generische Verfahren
+zur Berechnung diskreter Logarithmen ungefähr
+\[
+    \mathcal{O}(\sqrt{q})
+\]
+Gruppenoperationen.
+
+Diese Asymmetrie zwischen legitimer Protokollausführung
+und generischem Angriffsaufwand stellt einen wichtigen
+Vorteil des Verfahrens dar.
+
+Darüber hinaus kann das Commitment grundsätzlich
+bereits vor Beginn der eigentlichen Interaktion
+berechnet werden.
+
+Dadurch lässt sich ein Teil des Rechenaufwands in
+eine vorbereitende Phase verlagern. Voraussetzung
+ist, dass die vorberechneten Zufallswerte sicher
+gespeichert und jeweils nur für eine
+Protokollausführung verwendet werden.
+
+Vergleichbare Optimierungsmöglichkeiten werden auch
+für die nichtinteraktive Variante des
+Schnorr-Protokolls beschrieben
+\cite[Abschnitt 2.4]{hao2017}.
+
+Die tatsächliche Ausführungszeit hängt jedoch
+von den gewählten Parametern, der verwendeten
+Hardware und der Qualität der Implementierung ab.
+
+
+\subsubsection{Überschaubarer Kommunikationsaufwand}
+
+Das Schnorr-Identifikationsprotokoll benötigt lediglich
+drei Nachrichten:
+
+\begin{enumerate}
+    \item das Commitment $t$,
+    \item die Challenge $c$,
+    \item die Response $s$.
+\end{enumerate}
+
+Die öffentlichen Gruppenparameter sowie der öffentliche
+Schlüssel werden dabei als bereits bekannt vorausgesetzt.
+
+Für eine multiplikative Untergruppe von $\Z_p^*$
+lässt sich der reine kryptografische
+Kommunikationsaufwand näherungsweise durch
+\[
+    L=
+    \left\lceil\log_2 p\right\rceil
+    +2\left\lceil\log_2 q\right\rceil
+\]
+Bit beschreiben.
+
+Der erste Summand entspricht der Größe des
+Commitments. Die beiden weiteren Summanden
+entsprechen der Challenge und der Response.
+
+Bei einem beispielhaften Primzahlmodulus mit
+3072 Bit und einer Gruppenordnung mit 256 Bit
+ergibt sich
+\begin{align*}
+    L
+        &=3072+256+256\\
+        &=3584\text{ Bit}\\
+        &=448\text{ Byte}.
+\end{align*}
+
+Diese Abschätzung berücksichtigt ausschließlich
+die übertragenen kryptografischen Werte.
+
+Zusätzliche Daten für die Kodierung, den
+Verbindungsaufbau, die Benutzeridentifikation
+oder weitere Sicherheitsmechanismen sind darin
+nicht enthalten.
+
+Bei einer Implementierung auf einer geeigneten
+elliptischen Kurve können Gruppenelemente deutlich
+kompakter dargestellt werden.
+
+Wird beispielsweise eine 256-Bit-Kurve mit
+einer komprimierten Punktdarstellung von
+33 Byte verwendet, ergeben sich bei zwei
+Skalaren von jeweils 32 Byte insgesamt
+\[
+    33+32+32=97\text{ Byte}.
+\]
+
+Die konkreten Größen hängen von der gewählten
+Kurve und dem verwendeten Kodierungsverfahren ab.
+
+Der geringe Umfang der übertragenen
+kryptografischen Daten kann insbesondere bei
+Systemen mit begrenzter Übertragungsbandbreite
+von Vorteil sein.
+
+
+\subsubsection{Schutz vor einfachen Replay-Angriffen}
+
+Eine weitere positive Eigenschaft ergibt sich
+aus der Verwendung einer frischen Challenge.
+
+Ein Angreifer, der eine frühere Protokollausführung
+aufzeichnet, erhält das Transkript
+\[
+    (t,c,s).
+\]
+
+Bei einer späteren Authentifizierung wählt der
+Verifier jedoch eine neue, unabhängige Challenge.
+
+Die zuvor aufgezeichnete Response kann daher
+nicht ohne Weiteres erneut verwendet werden.
+
+Wie in Abschnitt~\ref{sec:praxis} gezeigt wurde,
+beträgt die Wahrscheinlichkeit, dass eine
+gleichverteilt aus $\Z_q$ gewählte Challenge
+mit einer zuvor festgelegten Challenge
+übereinstimmt,
+\[
+    \frac{1}{q}.
+\]
+
+Bei ausreichend großen Parametern ist diese
+Wahrscheinlichkeit vernachlässigbar.
+
+Dies erschwert einfache Replay-Angriffe,
+bei denen ein Angreifer ausschließlich bereits
+aufgezeichnete Nachrichten erneut überträgt.
+
+Der Schutz gilt jedoch nicht automatisch für
+Angriffe, bei denen Nachrichten einer laufenden
+Authentifizierung in Echtzeit weitergeleitet
+werden.
+
+
+\subsubsection{Flexibilität und mathematische Einfachheit}
+
+Das Schnorr-Identifikationsprotokoll besitzt eine
+vergleichsweise einfache mathematische Struktur.
+
+Seine wesentlichen Eigenschaften lassen sich
+anhand weniger Gleichungen beschreiben und
+analysieren.
+
+Dies erleichtert das Verständnis der zugrunde
+liegenden Sicherheitsmechanismen und ermöglicht
+eine klare Trennung zwischen mathematischen
+Annahmen und praktischen Implementierungsbedingungen.
+
+Darüber hinaus kann das Verfahren in
+unterschiedlichen geeigneten zyklischen Gruppen
+realisiert werden.
+
+Neben multiplikativen Untergruppen endlicher
+Körper kommen insbesondere Gruppen auf
+elliptischen Kurven infrage.
+
+Die mathematische Grundstruktur lässt sich
+außerdem als Baustein für weiterführende
+kryptografische Verfahren verwenden.
+
+Beispiele hierfür sind nichtinteraktive
+Wissensnachweise, passwortauthentifizierte
+Schlüsselaustauschverfahren und digitale
+Schnorr-Signaturen
+\cite[Abschnitte 3 und 5]{hao2017}.
+
+Dabei müssen die jeweiligen Erweiterungen
+jedoch unabhängig hinsichtlich ihrer
+Sicherheit untersucht werden.
+
+
 \subsection{Nachteile und Voraussetzungen}
-\todo{Interaktion, Zufallszahlenerzeugung, Schlüsselzuordnung, sichere
- Implementierung und Grenzen der zugrunde liegenden Annahmen besprechen.}
+
+Trotz der beschriebenen Vorteile ist das
+Schnorr-Identifikationsprotokoll nicht für
+jede Anwendung gleichermaßen geeignet.
+
+Sein sicherer Einsatz erfordert die
+Berücksichtigung mehrerer technischer und
+organisatorischer Voraussetzungen.
+
+
+\subsubsection{Notwendigkeit einer Interaktion}
+
+Das ursprüngliche Schnorr-Identifikationsprotokoll
+ist ein interaktives Verfahren.
+
+Der Prover muss zunächst das Commitment übertragen,
+anschließend die Challenge des Verifiers empfangen
+und darauf mit einer gültigen Response antworten.
+
+Im Gegensatz zu einem nichtinteraktiven
+Wissensnachweis müssen daher beide Parteien
+während der Protokollausführung miteinander
+kommunizieren können.
+
+Dies kann insbesondere in folgenden Situationen
+nachteilig sein:
+
+\begin{itemize}
+    \item Kommunikationsverbindungen mit hoher Latenz,
+    \item zeitweise nicht erreichbare Teilnehmer,
+    \item Systeme mit häufigen Verbindungsunterbrechungen,
+    \item Anwendungen, in denen Nachweise unabhängig
+          vom Prover überprüfbar sein müssen.
+\end{itemize}
+
+Obwohl die übertragenen Datenmengen gering sind,
+kann die zeitliche Abhängigkeit der Nachrichten
+die Gesamtdauer der Authentifizierung beeinflussen.
+
+Nichtinteraktive Varianten können diese
+Einschränkung teilweise überwinden.
+
+Die Fiat-Shamir-Transformation ersetzt hierzu
+die zufällige Challenge des Verifiers durch
+einen kryptografischen Hashwert.
+
+Die Sicherheit einer solchen Variante muss
+allerdings unter zusätzlichen Annahmen
+betrachtet werden
+\cite[Abschnitt 2.3]{hao2017}.
+
+
+\subsubsection{Abhängigkeit von sicheren Zufallswerten}
+
+Eine besonders kritische Voraussetzung ist
+die sichere Erzeugung des temporären
+Zufallswertes $r$.
+
+Für jede Protokollausführung muss der Prover
+einen neuen, unabhängigen und ausreichend
+unvorhersehbaren Zufallswert verwenden.
+
+Wie in Abschnitt~\ref{sec:protokoll} gezeigt wurde,
+kann bei der Wiederverwendung desselben
+Zufallswertes für unterschiedliche Challenges
+der geheime Schlüssel durch
+\[
+    x=(s_1-s_2)(c_1-c_2)^{-1}\bmod q
+\]
+berechnet werden.
+
+Ein Fehler bei der Zufallszahlenerzeugung kann
+damit zur vollständigen Kompromittierung
+des langfristigen geheimen Schlüssels führen.
+
+Diese Schwachstelle entsteht unabhängig davon,
+wie schwierig das diskrete Logarithmusproblem
+in der verwendeten Gruppe ist.
+
+Auch große und mathematisch sichere
+Gruppenparameter können eine fehlerhafte
+Zufallszahlenerzeugung nicht ausgleichen.
+
+RFC~8235 hebt deshalb die Bedeutung einer
+sicheren Erzeugung temporärer Zufallswerte
+ausdrücklich hervor
+\cite[Abschnitt 6]{hao2017}.
+
+In praktischen Implementierungen muss daher
+ein geeigneter kryptografisch sicherer
+Zufallszahlengenerator verwendet werden.
+
+Ebenso muss verhindert werden, dass bereits
+verwendete Zufallswerte infolge von
+Programmfehlern, wiederhergestellten
+Systemzuständen oder parallelen
+Protokollausführungen erneut eingesetzt werden.
+
+
+\subsubsection{Sichere Schlüsselspeicherung und Schlüsselverwaltung}
+
+Da das Verfahren auf einem asymmetrischen
+Schlüsselpaar basiert, muss der private
+Schlüssel dauerhaft geschützt werden.
+
+Ein Angreifer, der den geheimen Schlüssel
+$x$ erlangt, kann selbst gültige
+Schnorr-Identifikationen durchführen.
+
+Die Zero-Knowledge-Eigenschaft schützt
+nicht gegen den Diebstahl des Schlüssels
+auf dem Endgerät des Provers.
+
+Für einen praktischen Einsatz müssen deshalb
+geeignete Maßnahmen zur sicheren
+Schlüsselspeicherung getroffen werden.
+
+Hierzu zählen beispielsweise:
+
+\begin{itemize}
+    \item geschützte kryptografische Schlüsselspeicher,
+    \item Hardware-Sicherheitsmodule oder Smartcards,
+    \item lokale Zugriffskontrollen,
+    \item Verfahren zum Widerruf kompromittierter
+          öffentlicher Schlüssel,
+    \item sichere Registrierungs- und
+          Wiederherstellungsverfahren.
+\end{itemize}
+
+Insbesondere der Verlust eines privaten
+Schlüssels stellt eine organisatorische
+Herausforderung dar.
+
+Da der öffentliche Schlüssel nicht zur
+effizienten Wiederherstellung des privaten
+Schlüssels verwendet werden kann, muss ein
+System geeignete Ersatz- oder
+Wiederherstellungsverfahren vorsehen.
+
+Diese Verfahren dürfen das Sicherheitsniveau
+der eigentlichen Authentifizierung nicht
+untergraben.
+
+
+\subsubsection{Vertrauenswürdige Zuordnung öffentlicher Schlüssel}
+
+Das Schnorr-Protokoll weist mathematisch nach,
+dass ein Teilnehmer den diskreten Logarithmus
+eines bestimmten öffentlichen Schlüssels kennt.
+
+Es weist jedoch nicht unmittelbar nach,
+welcher realen Person dieser Schlüssel gehört.
+
+Eine vertrauenswürdige Zuordnung zwischen
+Benutzeridentität und öffentlichem Schlüssel
+ist daher eine notwendige Voraussetzung.
+
+Kann ein Angreifer während der Registrierung
+seinen eigenen öffentlichen Schlüssel unter
+der Identität eines anderen Benutzers hinterlegen,
+kann er sich anschließend mit seinem eigenen
+privaten Schlüssel erfolgreich authentifizieren.
+
+Das mathematische Protokoll würde dabei
+korrekt funktionieren, obwohl die
+Authentifizierung aus organisatorischer Sicht
+fehlerhaft wäre.
+
+Ein vollständiges Identity-and-Access-Management-
+System muss daher zusätzlich eine sichere
+Registrierung, die Verwaltung von Identitäten
+und die Zuordnung von Berechtigungen vorsehen.
+
+Die Schnorr-Identifikation stellt lediglich
+einen kryptografischen Baustein eines solchen
+Systems dar.
+
+
+\subsubsection{Abhängigkeit von mathematischen
+Sicherheitsannahmen}
+
+Die praktische Sicherheit des Verfahrens hängt
+wesentlich von der Schwierigkeit des diskreten
+Logarithmusproblems ab.
+
+Wie in Abschnitt~\ref{sec:praxis} erläutert wurde,
+können ungeeignete Gruppenparameter zu einem
+unzureichenden Sicherheitsniveau führen.
+
+Insbesondere darf die Bitlänge der Gruppenordnung
+$q$ nicht unmittelbar mit der Anzahl der
+Sicherheitsbits gleichgesetzt werden.
+
+Generische Angriffe benötigen ungefähr
+\[
+    \mathcal{O}(\sqrt{q})
+\]
+Gruppenoperationen.
+
+Für bestimmte mathematische Gruppen können
+darüber hinaus effizientere spezialisierte
+Angriffe existieren.
+
+Bei multiplikativen Untergruppen endlicher
+Körper müssen deshalb sowohl die Gruppenordnung
+$q$ als auch der Primzahlmodulus $p$ geeignet
+gewählt werden.
+
+Für eine sichere Implementierung sollten
+bereits untersuchte und für das angestrebte
+Sicherheitsniveau geeignete Gruppenparameter
+verwendet werden.
+
+Die eigenständige Auswahl ungeprüfter
+kryptografischer Parameter kann zusätzliche
+Sicherheitsrisiken verursachen.
+
+
+\subsubsection{Grenzen gegenüber aktiven Angreifern}
+
+Die in Abschnitt~\ref{sec:protokoll} gezeigte
+Zero-Knowledge-Eigenschaft bezieht sich
+auf einen ehrlichen Verifier.
+
+Ein solches Sicherheitsmodell setzt voraus,
+dass der Verifier seine Challenge entsprechend
+der Protokollspezifikation erzeugt.
+
+Ein praktisches Authentifizierungssystem
+muss jedoch auch Angreifer berücksichtigen,
+die vom vorgesehenen Protokollablauf abweichen.
+
+Hierzu zählen beispielsweise manipulierte
+Gegenstellen, Man-in-the-Middle-Angriffe
+und die Weiterleitung von Nachrichten
+zwischen verschiedenen Protokollausführungen.
+
+Ein Angreifer könnte versuchen, das
+Commitment eines legitimen Provers an
+einen Verifier weiterzuleiten.
+
+Die erhaltene Challenge könnte anschließend
+an den Prover und dessen Response wiederum
+an den Verifier weitergeleitet werden.
+
+Der Angreifer müsste hierfür den geheimen
+Schlüssel nicht selbst kennen.
+
+Das ursprüngliche Schnorr-Protokoll besitzt
+keine eigenständige Bindung an eine bestimmte
+Webdomain oder einen geschützten
+Kommunikationskanal.
+
+Für eine sichere Authentifizierung in
+offenen Netzwerken können daher zusätzliche
+Mechanismen erforderlich sein.
+
+Dazu zählen beispielsweise die
+Authentifizierung der Gegenstelle, eine
+geeignete Bindung an den Sitzungskontext
+und die Verwendung eines geschützten
+Kommunikationsprotokolls.
+
+Aus der Honest-Verifier-Zero-Knowledge-
+Eigenschaft allein folgt somit keine
+allgemeine Sicherheit gegenüber sämtlichen
+aktiven Angreifern.
+
+
+\subsubsection{Implementierungsrisiken}
+
+Auch ein mathematisch korrektes Protokoll
+kann durch Fehler in seiner Implementierung
+unsicher werden.
+
+Zu den relevanten Risiken zählen:
+
+\begin{itemize}
+    \item unzureichende Prüfung der Gruppenparameter,
+    \item fehlende Validierung empfangener
+          Gruppenelemente,
+    \item unsichere Zufallszahlenerzeugung,
+    \item Fehler bei der Verwaltung paralleler
+          Authentifizierungssitzungen,
+    \item Seitenkanalangriffe,
+    \item unsichere Speicherung privater Schlüssel.
+\end{itemize}
+
+Bei Seitenkanalangriffen werden beispielsweise
+Informationen über die Ausführungszeit,
+den Energieverbrauch oder den Speicherzugriff
+einer Implementierung ausgewertet.
+
+Dadurch können unter Umständen Rückschlüsse
+auf geheime Schlüssel oder temporäre
+Zufallswerte gezogen werden.
+
+Insbesondere Berechnungen mit geheimen
+Exponenten sollten daher möglichst so
+implementiert werden, dass ihr beobachtbares
+Verhalten nicht von den geheimen Werten
+abhängt.
+
+Für produktive Systeme empfiehlt sich
+die Verwendung etablierter kryptografischer
+Bibliotheken anstelle selbst entwickelter
+Implementierungen.
+
+Eine zu Lernzwecken erstellte Implementierung
+des Schnorr-Protokolls sollte nicht ohne
+weitergehende Sicherheitsprüfung in einem
+produktiven Authentifizierungssystem
+eingesetzt werden.
+
+
+\subsubsection{Fehlende Postquantensicherheit}
+
+Eine weitere langfristige Einschränkung
+ergibt sich aus der Entwicklung von
+Quantencomputern.
+
+Der Shor-Algorithmus ermöglicht auf einem
+hinreichend leistungsfähigen,
+fehlertoleranten Quantencomputer die
+effiziente Lösung diskreter
+Logarithmusprobleme.
+
+Dadurch könnte aus dem öffentlichen
+Schlüssel
+\[
+    y=g^x
+\]
+der geheime Schlüssel $x$ berechnet werden.
+
+Dies betrifft sowohl geeignete
+multiplikative Gruppen endlicher Körper
+als auch die für Schnorr-Verfahren
+verwendeten elliptischen Kurven.
+
+Die Vergrößerung der klassischen
+Gruppenparameter stellt daher keine
+grundsätzliche Lösung gegenüber
+leistungsfähigen Quantenangriffen dar.
+
+Das Schnorr-Identifikationsprotokoll ist
+folglich kein postquantenkryptografisches
+Verfahren.
+
+Bei Anwendungen mit langfristigen
+Sicherheitsanforderungen sollte deshalb
+berücksichtigt werden, wie ein späterer
+Wechsel zu quantenresistenten
+Authentifizierungsverfahren ermöglicht
+werden kann.
+
+
 \subsection{Wann lohnt sich das Verfahren?}
-\todo{Aus den vorherigen Punkten konkrete Einsatzbedingungen ableiten.
- Bezug zur Problemstellung herstellen und Vergleichskriterien offenlegen.}
+
+Auf Grundlage der beschriebenen Vor- und Nachteile
+kann untersucht werden, für welche Anwendungen
+das Schnorr-Identifikationsprotokoll besonders
+geeignet ist.
+
+Die Bewertung erfolgt anhand folgender Kriterien:
+
+\begin{enumerate}
+    \item Schutz des langfristigen Geheimnisses,
+    \item Rechen- und Kommunikationsaufwand,
+    \item Widerstandsfähigkeit gegenüber Angriffen,
+    \item Aufwand der Schlüsselverwaltung,
+    \item Interoperabilität und Integration
+          in bestehende Systeme.
+\end{enumerate}
+
+Die Bedeutung der einzelnen Kriterien hängt
+vom konkreten Anwendungsfall und dem
+zugrunde liegenden Angreifermodell ab.
+
+
+\subsubsection{Vergleich mit anderen
+Authentifizierungsverfahren}
+
+Eine klassische passwortbasierte Authentifizierung
+besitzt den Vorteil einer einfachen
+organisatorischen Handhabung.
+
+Benutzer benötigen zunächst keine individuellen
+kryptografischen Schlüsselpaare, sondern
+authentifizieren sich mit einem gemeinsam
+festgelegten Geheimnis.
+
+Nachteilig ist insbesondere, dass die Sicherheit
+häufig von der Qualität des gewählten Passworts
+abhängt.
+
+Die Wiederverwendung von Passwörtern,
+Wörterbuchangriffe und Phishing können
+zusätzliche Risiken verursachen.
+
+Die Schnorr-Identifikation ersetzt das Passwort
+durch einen zufällig erzeugten kryptografischen
+Schlüssel.
+
+Dadurch entfällt die Abhängigkeit von der
+Entropie eines durch den Benutzer gewählten
+Passworts.
+
+Allerdings entstehen zusätzliche Anforderungen
+an die Registrierung und Verwaltung
+kryptografischer Schlüssel.
+
+Eine weitere Alternative stellt die
+signaturbasierte Challenge-Response-
+Authentifizierung dar.
+
+Dabei erzeugt ein Server eine frische
+Challenge, die vom Client mit seinem
+privaten Schlüssel digital signiert wird.
+
+Der Server überprüft die Signatur mithilfe
+des zugehörigen öffentlichen Schlüssels.
+
+Dieses Verfahren besitzt mehrere
+Gemeinsamkeiten mit der Schnorr-Identifikation.
+
+Beide Ansätze basieren auf asymmetrischen
+Schlüsselpaaren und erfordern keine
+Übertragung des privaten Schlüssels.
+
+Im Unterschied zur ursprünglichen
+Schnorr-Identifikation ist eine digitale
+Signatur bei entsprechender Konstruktion
+auch unabhängig von der ursprünglichen
+Protokollinteraktion überprüfbar.
+
+Bei einer Schnorr-Identifikation kann ein
+ehrlicher Verifier hingegen selbst
+akzeptierende Transkripte simulieren.
+
+Diese Eigenschaft kann in Anwendungen
+erwünscht sein, in denen der Nachweis
+gegenüber einer bestimmten Gegenstelle
+erfolgen soll, ohne einen allgemein
+überprüfbaren Signaturnachweis zu erzeugen.
+
+
+\subsubsection{Vergleich mit modernen Passkeys}
+
+Moderne Passkeys verwenden ebenfalls
+asymmetrische Schlüsselpaarverfahren
+zur Authentifizierung.
+
+Wie bereits in Abschnitt~\ref{sec:praxis}
+beschrieben wurde, besteht die wesentliche
+Gemeinsamkeit darin, dass der private
+Schlüssel nicht an den authentifizierenden
+Server übertragen werden muss.
+
+Passkeys sind jedoch keine unmittelbare
+Implementierung des interaktiven
+Schnorr-Identifikationsprotokolls.
+
+Sie verwenden standardisierte Mechanismen
+zur signaturbasierten Authentifizierung
+und zur Bindung des Nachweises an den
+jeweiligen Webdienst.
+
+Außerdem unterstützen geeignete
+Authenticatoren eine zusätzliche lokale
+Benutzerverifikation, beispielsweise
+mittels PIN oder Biometrie.
+
+Dadurch berücksichtigen Passkeys weitere
+Anforderungen, die über den mathematischen
+Nachweis der Kenntnis eines privaten
+Schlüssels hinausgehen.
+
+Insbesondere die Bindung an den
+jeweiligen Dienst ist für den Schutz
+vor klassischen Phishing-Angriffen
+von Bedeutung.
+
+Eine vergleichbare Bindung ist im
+ursprünglichen Schnorr-Protokoll nicht
+automatisch enthalten.
+
+Für die Implementierung einer modernen
+Webanwendung ist daher ein etabliertes
+und standardisiertes Verfahren wie
+WebAuthn in der Regel besser geeignet
+als die eigenständige Entwicklung
+eines Schnorr-basierten
+Authentifizierungsmechanismus.
+
+Das Schnorr-Protokoll bleibt jedoch
+für das Verständnis der mathematischen
+Grundlagen solcher Authentifizierungs-
+verfahren von Bedeutung.
+
+
+\subsubsection{Zusammenfassender Vergleich}
+
+Tabelle~\ref{tab:authentifizierungsvergleich}
+stellt ausgewählte Eigenschaften der
+betrachteten Verfahren gegenüber.
+
+Dabei wird eine klassische
+passwortbasierte Authentifizierung ohne
+zusätzliche Faktoren betrachtet.
+
+Für die Schnorr-Identifikation wird
+das ursprüngliche interaktive Protokoll
+ohne zusätzliche Bindung an einen
+Kommunikationskanal angenommen.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{p{3.4cm}p{3cm}p{3cm}p{3cm}}
+        \toprule
+        Kriterium
+            & Passwort
+            & Schnorr
+            & Passkey\\
+        \midrule
+
+        Authentifizierungs-
+        grundlage
+            & Gemeinsames Geheimnis
+            & Diskreter Logarithmus
+            & Digitaler Signaturnachweis\\
+
+        Übertragung des langfristigen Geheimnisses
+            & Bei klassischer Anmeldung
+            & Nein
+            & Nein\\
+
+        Serverseitige Speicherung
+            & Passwort-Hash
+            & Öffentlicher Schlüssel
+            & Öffentlicher Schlüssel\\
+
+        Passwortbasierte Wörterbuchangriffe
+            & Möglich
+            & Nicht bei zufälligen Schlüsseln
+            & Nicht auf den Passkey selbst\\
+
+        Schutz vor einfachem Replay
+            & Nicht inhärent
+            & Durch frische Challenge
+            & Durch frische Challenge\\
+
+        Bindung an einen Webdienst
+            & Nicht inhärent
+            & Nicht inhärent
+            & Durch WebAuthn\\
+
+        Schlüsselverwaltung
+            & Nicht erforderlich
+            & Erforderlich
+            & Durch Authenticator\\
+
+        Integration in Webanwendungen
+            & Etabliert
+            & Zusätzliche Entwicklung
+            & Standardisiert\\
+
+        \bottomrule
+    \end{tabular}
+    \caption{Qualitativer Vergleich ausgewählter
+    Authentifizierungsverfahren. Eigene Darstellung.}
+    \label{tab:authentifizierungsvergleich}
+\end{table}
+
+Der Vergleich zeigt, dass die Wahl eines
+Authentifizierungsverfahrens nicht ausschließlich
+von seiner mathematischen Sicherheit
+abhängen sollte.
+
+Auch der Implementierungsaufwand, die
+Interoperabilität und die organisatorischen
+Anforderungen müssen berücksichtigt werden.
+
+
+\subsubsection{Geeignete Einsatzbedingungen}
+
+Ein Einsatz des Schnorr-Identifikationsprotokolls
+kann insbesondere dann sinnvoll sein,
+wenn folgende Voraussetzungen erfüllt sind:
+
+\begin{itemize}
+
+    \item Die Authentifizierung soll auf einem
+    asymmetrischen Schlüsselpaar basieren.
+
+    \item Der Verifier soll die Kenntnis eines
+    geheimen Schlüssels überprüfen können,
+    ohne diesen zu erhalten.
+
+    \item Die beteiligten Systeme können während
+    der Authentifizierung direkt miteinander
+    kommunizieren.
+
+    \item Geeignete kryptografische Gruppenparameter
+    stehen zur Verfügung.
+
+    \item Eine sichere Zufallszahlenerzeugung und
+    ein wirksamer Schutz des privaten Schlüssels
+    können gewährleistet werden.
+
+    \item Der öffentliche Schlüssel kann
+    zuverlässig einer bestimmten Identität
+    zugeordnet werden.
+
+    \item Zusätzliche Sicherheitsmechanismen
+    berücksichtigen das konkrete Angreifermodell.
+
+\end{itemize}
+
+Unter diesen Voraussetzungen stellt
+das Verfahren einen mathematisch
+effizienten Baustein für die
+Authentifizierung dar.
+
+Es kann insbesondere innerhalb
+spezialisierter kryptografischer
+Protokolle sinnvoll eingesetzt werden,
+in denen explizit die Kenntnis eines
+diskreten Logarithmus nachgewiesen
+werden muss.
+
+
+\subsubsection{Weniger geeignete Einsatzbedingungen}
+
+Weniger geeignet ist eine unmittelbare
+Verwendung des ursprünglichen
+Schnorr-Protokolls, wenn bereits
+standardisierte Authentifizierungsverfahren
+sämtliche Anforderungen der Anwendung
+erfüllen.
+
+Dies betrifft insbesondere moderne
+Webanwendungen, für die etablierte
+Public-Key-Authentifizierungsmechanismen
+zur Verfügung stehen.
+
+Auch Anwendungen, die keine direkte
+Interaktion zwischen Prover und Verifier
+ermöglichen, benötigen eine andere
+Protokollstruktur oder eine geeignete
+nichtinteraktive Variante.
+
+Darüber hinaus ist ein Einsatz
+problematisch, wenn die sichere
+Erzeugung und Speicherung kryptografischer
+Schlüssel und temporärer Zufallswerte
+nicht gewährleistet werden kann.
+
+Bei expliziten Anforderungen an die
+Postquantensicherheit ist die klassische
+Schnorr-Identifikation ebenfalls nicht
+geeignet.
+
+
+\subsection{Gesamtbewertung}
+
+Das Schnorr-Identifikationsprotokoll bietet
+eine mathematisch effiziente Möglichkeit,
+die Kenntnis eines geheimen Schlüssels
+nachzuweisen, ohne diesen unmittelbar
+offenzulegen.
+
+Zu seinen wesentlichen Vorteilen zählen
+die geringe Anzahl erforderlicher
+kryptografischer Operationen, der
+überschaubare Kommunikationsaufwand und
+die Honest-Verifier-Zero-Knowledge-
+Eigenschaft.
+
+Demgegenüber stehen insbesondere die
+Notwendigkeit einer direkten Interaktion,
+die Abhängigkeit von sicheren Zufallswerten
+und die Anforderungen an die
+Schlüsselverwaltung.
+
+Die Sicherheit des Verfahrens kann
+deshalb nicht ausschließlich aus der
+Schwierigkeit des diskreten
+Logarithmusproblems abgeleitet werden.
+
+Vielmehr müssen die mathematischen
+Sicherheitseigenschaften, das betrachtete
+Angreifermodell und die praktische
+Implementierung gemeinsam bewertet werden.
+
+Für spezialisierte kryptografische
+Anwendungen stellt das Schnorr-Protokoll
+einen geeigneten und vielseitigen
+Baustein dar.
+
+Für allgemeine Authentifizierungssysteme
+sollte jedoch geprüft werden, ob
+etablierte und standardisierte Verfahren
+die erforderlichen Sicherheits- und
+Integrationsanforderungen bereits erfüllen.
+
+Insgesamt liegt die besondere Bedeutung
+des Schnorr-Identifikationsprotokolls
+sowohl in seiner eigenständigen
+kryptografischen Funktionsweise als
+auch in seiner Rolle als Grundlage
+weiterführender Verfahren zur sicheren
+Authentifizierung und zum Nachweis
+kryptografischen Wissens.
