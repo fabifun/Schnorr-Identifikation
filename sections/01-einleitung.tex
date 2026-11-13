@@ -1,9 +1,394 @@
+
 % !TeX root = ../main.tex
+
 \section{Einleitung und Problemstellung}\label{sec:einleitung}
-\todo{Erklären, welches Problem gelöst wird: Eine Person soll die Kenntnis
- eines geheimen Schlüssels nachweisen, ohne diesen offenzulegen.
- Rollen von beweisender und prüfender Partei einführen und die vertrauenswürdige
- Zuordnung eines öffentlichen Schlüssels zur Identität ansprechen.}
-\todo{Schnorr-Identifikation historisch einordnen und von Verschlüsselung
- und digitalen Signaturen abgrenzen. Leitfrage und Aufbau des Papers nennen.
- Ausgangsquelle: \cite{schnorr1991}.}
+
+Die zuverlässige Authentifizierung von Benutzern und
+technischen Systemen stellt eine zentrale Herausforderung
+des Identity and Access Managements (IAM) dar.
+Bevor einem Benutzer der Zugriff auf schützenswerte
+Ressourcen gewährt werden kann, muss zunächst überprüft
+werden, ob dieser tatsächlich über die erforderlichen
+Authentifizierungsmerkmale verfügt.
+
+Klassische Authentifizierungsverfahren basieren häufig
+auf Passwörtern, die als gemeinsames Geheimnis zwischen
+einem Benutzer und einem authentifizierenden System
+dienen. Solche Verfahren können jedoch verschiedene
+Sicherheitsrisiken mit sich bringen. Dazu zählen
+insbesondere schwache oder wiederverwendete Passwörter,
+Phishing sowie die Kompromittierung serverseitig
+gespeicherter Passwort-Hashes.
+
+Asymmetrische kryptografische Verfahren verfolgen
+einen anderen Ansatz. Anstelle eines gemeinsamen
+Geheimnisses wird ein Schlüsselpaar verwendet, das
+aus einem privaten und einem öffentlichen Schlüssel
+besteht. Während der private Schlüssel ausschließlich
+dem jeweiligen Schlüsselinhaber zur Verfügung stehen
+soll, kann der öffentliche Schlüssel anderen
+Teilnehmern zugänglich gemacht werden.
+
+Hieraus ergibt sich eine grundlegende kryptografische
+Problemstellung: Wie kann eine Partei nachweisen,
+dass sie den zu einem öffentlichen Schlüssel
+gehörenden geheimen Schlüssel kennt, ohne diesen
+gegenüber einer anderen Partei offenzulegen?
+
+
+\subsection{Problemstellung}
+
+Für die Betrachtung dieser Problemstellung werden
+zwei beteiligte Parteien unterschieden:
+
+\begin{description}
+
+    \item[Prover (beweisende Partei):]
+    Der Prover besitzt einen geheimen Schlüssel und
+    möchte nachweisen, dass er diesen kennt.
+
+    \item[Verifier (prüfende Partei):]
+    Der Verifier kennt den zugehörigen öffentlichen
+    Schlüssel und möchte überprüfen, ob der Prover
+    tatsächlich über das entsprechende geheime
+    Wissen verfügt.
+
+\end{description}
+
+Eine naheliegende, jedoch unsichere Möglichkeit
+bestünde darin, den geheimen Schlüssel unmittelbar
+an den Verifier zu übertragen. Dieser könnte
+anschließend überprüfen, ob der übermittelte
+Schlüssel zum bekannten öffentlichen Schlüssel
+gehört.
+
+Ein solcher Ansatz würde allerdings die Geheimhaltung
+des privaten Schlüssels aufheben. Der Verifier
+oder ein Angreifer, der Zugriff auf den übertragenen
+Schlüssel erlangt, könnte diesen für zukünftige
+Authentifizierungsvorgänge verwenden.
+
+Ein geeignetes kryptografisches Verfahren muss
+daher einen Nachweis der Schlüsselkenntnis
+ermöglichen, ohne dass der geheime Schlüssel
+selbst übertragen werden muss.
+
+Darüber hinaus sollte ein aufgezeichneter
+Authentifizierungsvorgang nicht ohne Weiteres
+für eine spätere Authentifizierung wiederverwendet
+werden können.
+
+Für die praktische Anwendung ist außerdem eine
+vertrauenswürdige Zuordnung zwischen dem
+öffentlichen Schlüssel und der jeweiligen
+Benutzeridentität erforderlich.
+
+Der mathematische Nachweis der Kenntnis eines
+privaten Schlüssels bestätigt zunächst lediglich,
+dass eine Partei über das entsprechende geheime
+Wissen verfügt. Ob dieser Schlüssel tatsächlich
+einer bestimmten Person zugeordnet werden kann,
+hängt von der zuvor erfolgten Registrierung
+und Identitätsprüfung ab.
+
+Die kryptografische Identifikation ist somit
+ein Bestandteil eines umfassenderen
+Authentifizierungs- und Identitätsmanagementsystems.
+
+
+\subsection{Das Schnorr-Identifikationsprotokoll}
+
+Eine Lösung für die beschriebene Problemstellung
+stellt das Schnorr-Identifikationsprotokoll dar.
+
+Das Verfahren geht auf den deutschen Mathematiker
+und Kryptografen Claus-Peter Schnorr zurück.
+In seiner Veröffentlichung \emph{Efficient Signature
+Generation by Smart Cards} aus dem Jahr 1991
+beschreibt Schnorr effiziente Verfahren zur
+kryptografischen Identifikation und zur Erzeugung
+digitaler Signaturen \cite{schnorr1991}.
+
+Die mathematische Grundlage des Verfahrens bildet
+das diskrete Logarithmusproblem in geeigneten
+zyklischen Gruppen.
+
+Dabei wird aus einem geheimen Exponenten $x$
+und einem öffentlich bekannten Gruppenelement $g$
+der öffentliche Schlüssel
+\[
+    y=g^x
+\]
+berechnet.
+
+Während die Berechnung des öffentlichen Schlüssels
+aus dem geheimen Exponenten effizient möglich ist,
+gilt die umgekehrte Berechnung des geheimen
+Exponenten aus dem öffentlichen Schlüssel bei
+geeigneter Wahl der mathematischen Gruppe und
+ihrer Parameter als rechnerisch schwierig.
+
+Das Schnorr-Identifikationsprotokoll nutzt diese
+Eigenschaft, um einen interaktiven Nachweis der
+Kenntnis des geheimen Exponenten zu ermöglichen.
+
+Der Nachweis erfolgt durch den Austausch von
+drei aufeinanderfolgenden Nachrichten:
+
+\begin{enumerate}
+    \item Commitment,
+    \item Challenge,
+    \item Response.
+\end{enumerate}
+
+Der Verifier überprüft anhand einer mathematischen
+Gleichung, ob die empfangene Response mit dem
+öffentlichen Schlüssel und den zuvor ausgetauschten
+Werten übereinstimmt.
+
+Der geheime Schlüssel selbst wird während der
+Protokollausführung nicht übertragen.
+
+Eine besondere Eigenschaft des Schnorr-Protokolls
+besteht darin, dass sich die Kenntnis des
+geheimen Schlüssels nachweisen lässt, ohne
+einem ehrlichen Verifier zusätzliche Informationen
+über diesen Schlüssel offenzulegen.
+
+Diese Eigenschaft wird als Honest-Verifier
+Zero Knowledge bezeichnet und im weiteren
+Verlauf der Arbeit näher untersucht.
+
+
+\subsection{Abgrenzung zu anderen kryptografischen Verfahren}
+
+Das Schnorr-Identifikationsprotokoll muss von
+anderen Verfahren der asymmetrischen Kryptografie
+unterschieden werden.
+
+Insbesondere verfolgen Verschlüsselung, digitale
+Signaturen und kryptografische Identifikation
+unterschiedliche Schutzziele.
+
+\paragraph{Verschlüsselung.}
+
+Das primäre Ziel einer Verschlüsselung besteht
+darin, die Vertraulichkeit von Informationen
+sicherzustellen.
+
+Eine Nachricht wird mithilfe eines kryptografischen
+Verfahrens so transformiert, dass ihr ursprünglicher
+Inhalt nur von berechtigten Parteien wiederhergestellt
+werden kann.
+
+Das Schnorr-Identifikationsprotokoll dient hingegen
+nicht der Verschlüsselung von Nachrichten.
+Es ermöglicht den Nachweis kryptografischen Wissens,
+ohne die Vertraulichkeit der übertragenen
+Kommunikationsinhalte selbst sicherzustellen.
+
+\paragraph{Digitale Signaturen.}
+
+Digitale Signaturen ermöglichen die Überprüfung
+der Authentizität und Integrität einer Nachricht.
+
+Hierzu erzeugt der Inhaber eines privaten Schlüssels
+eine Signatur für eine bestimmte Nachricht.
+Andere Teilnehmer können diese Signatur mithilfe
+des zugehörigen öffentlichen Schlüssels überprüfen.
+
+Im Unterschied dazu dient das ursprüngliche
+Schnorr-Identifikationsprotokoll dem interaktiven
+Nachweis der Kenntnis eines geheimen Schlüssels
+gegenüber einem Verifier.
+
+Eine unmittelbare Bindung des Nachweises an eine
+zu signierende Nachricht ist im ursprünglichen
+Identifikationsprotokoll nicht vorgesehen.
+
+Allerdings lassen sich aus dem Schnorr-Protokoll
+durch geeignete Erweiterungen digitale
+Signaturverfahren ableiten.
+
+Insbesondere die Fiat-Shamir-Transformation
+ermöglicht es, die interaktive Challenge durch
+einen kryptografischen Hashwert zu ersetzen.
+Dieser Zusammenhang bildet eine Grundlage
+für Schnorr-Signaturen.
+
+\paragraph{Kryptografische Identifikation.}
+
+Das Ziel eines kryptografischen
+Identifikationsverfahrens besteht darin,
+einen Teilnehmer anhand eines ihm zugeordneten
+kryptografischen Geheimnisses zu authentifizieren.
+
+Das Schnorr-Protokoll verfolgt dieses Ziel,
+indem es die Kenntnis eines geheimen
+diskreten Logarithmus nachweist.
+
+Die Identifikation einer konkreten Person
+setzt dabei weiterhin voraus, dass der
+verwendete öffentliche Schlüssel zuvor
+vertrauenswürdig mit ihrer Identität
+verknüpft wurde.
+
+Tabelle~\ref{tab:kryptografische-verfahren}
+fasst die unterschiedlichen Zielsetzungen
+zusammen.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{p{3.5cm}p{8cm}}
+        \toprule
+        Verfahren & Primäres Ziel\\
+        \midrule
+
+        Verschlüsselung
+            & Schutz der Vertraulichkeit
+              einer Nachricht\\
+
+        Digitale Signatur
+            & Nachweis der Authentizität
+              und Integrität einer Nachricht\\
+
+        Schnorr-Identifikation
+            & Nachweis der Kenntnis eines
+              geheimen Schlüssels ohne dessen
+              Offenlegung\\
+
+        \bottomrule
+    \end{tabular}
+    \caption{Abgrenzung ausgewählter
+    kryptografischer Verfahren.
+    Eigene Darstellung.}
+    \label{tab:kryptografische-verfahren}
+\end{table}
+
+
+\subsection{Zielsetzung und Forschungsfrage}
+
+Ziel dieser Arbeit ist es, die mathematischen
+Grundlagen und die Funktionsweise des
+Schnorr-Identifikationsprotokolls zu untersuchen
+sowie dessen Sicherheit und praktische
+Einsetzbarkeit im Kontext des Identity and
+Access Managements zu bewerten.
+
+Dabei soll insbesondere nachvollzogen werden,
+wie ein Teilnehmer die Kenntnis eines
+geheimen Schlüssels nachweisen kann, ohne
+diesen gegenüber der prüfenden Partei
+offenzulegen.
+
+Aus dieser Zielsetzung ergibt sich folgende
+zentrale Forschungsfrage:
+
+\begin{quote}
+    \textit{Wie ermöglicht das
+    Schnorr-Identifikationsprotokoll den Nachweis
+    der Kenntnis eines geheimen Schlüssels ohne
+    dessen Offenlegung, und unter welchen
+    mathematischen und technischen Voraussetzungen
+    eignet sich das Verfahren für eine sichere
+    und effiziente Authentifizierung?}
+\end{quote}
+
+Zur Beantwortung dieser Forschungsfrage werden
+folgende Teilfragen untersucht:
+
+\begin{enumerate}
+
+    \item Auf welchen mathematischen Grundlagen
+    basiert das Schnorr-Identifikationsprotokoll?
+
+    \item Wie erfolgt der Nachweis der Kenntnis
+    eines geheimen Schlüssels innerhalb des
+    Drei-Schritt-Protokolls?
+
+    \item Welche kryptografischen
+    Sicherheitseigenschaften besitzt das Verfahren,
+    und unter welchen Voraussetzungen gelten diese?
+
+    \item Welcher rechnerische Aufwand ist für
+    die reguläre Protokollausführung und für
+    mögliche Angriffe erforderlich?
+
+    \item Welche Vorteile, Nachteile und
+    praktischen Einsatzbedingungen ergeben
+    sich für die Verwendung des Verfahrens
+    in Authentifizierungssystemen?
+
+\end{enumerate}
+
+Die Untersuchung erfolgt anhand einer theoretischen
+Betrachtung der mathematischen Grundlagen,
+der Analyse des Protokollablaufs sowie einer
+literaturgestützten Bewertung seiner
+Sicherheitseigenschaften.
+
+Zur Veranschaulichung werden numerische Beispiele
+mit kleinen Gruppenparametern verwendet.
+Diese dienen ausschließlich der Nachvollziehbarkeit
+der mathematischen Zusammenhänge und stellen
+keine kryptografisch sicheren Parametersätze dar.
+
+Ergänzend werden theoretische Aufwandsabschätzungen
+für ausgewählte Angriffsverfahren vorgenommen.
+
+Eine experimentelle Untersuchung konkreter
+Implementierungen oder eine vollständige
+Sicherheitsanalyse sämtlicher möglicher
+Angreifermodelle ist nicht Gegenstand dieser
+Arbeit.
+
+
+\subsection{Aufbau der Arbeit}
+
+Die vorliegende Arbeit gliedert sich in
+sechs Abschnitte.
+
+Nach der Einführung in die Problemstellung
+und der Formulierung der Forschungsfrage
+werden in Abschnitt~\ref{sec:grundlagen}
+die mathematischen Grundlagen erläutert.
+
+Hierzu zählen insbesondere Gruppen,
+zyklische Gruppen, modulare Arithmetik
+und das diskrete Logarithmusproblem.
+
+Abschnitt~\ref{sec:protokoll} beschreibt
+anschließend das Schnorr-Identifikationsprotokoll.
+
+Neben der Schlüsselerzeugung und dem Ablauf
+des Drei-Schritt-Protokolls werden dessen
+Korrektheit sowie die wesentlichen
+kryptografischen Sicherheitseigenschaften
+untersucht.
+
+In Abschnitt~\ref{sec:praxis} erfolgt
+eine Betrachtung des praktischen Bezugs
+und des rechnerischen Aufwands.
+
+Dabei werden insbesondere generische
+Verfahren zur Berechnung diskreter
+Logarithmen, theoretische Angriffszeiten
+und ausgewählte Anwendungsfälle betrachtet.
+
+Abschnitt~\ref{sec:bewertung} untersucht
+die Vor- und Nachteile des Verfahrens
+und leitet daraus geeignete
+Einsatzbedingungen ab.
+
+Hierzu wird das Schnorr-Protokoll auch
+mit anderen Authentifizierungsmechanismen
+verglichen.
+
+Abschließend werden in
+Abschnitt~\ref{sec:fazit} die gewonnenen
+Erkenntnisse zusammengeführt, die
+Forschungsfrage beantwortet und die
+Grenzen der vorliegenden Untersuchung
+aufgezeigt.
