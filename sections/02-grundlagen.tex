@@ -1,33 +1,444 @@
+
 % !TeX root = ../main.tex
+
 \section{Mathematische Grundlagen}\label{sec:grundlagen}
+
+Das Schnorr-Identifikationsprotokoll basiert auf algebraischen 
+Strukturen und der angenommenen Schwierigkeit des diskreten 
+Logarithmusproblems. Für das Verständnis des Protokolls werden 
+im Folgenden die notwendigen mathematischen Grundlagen eingeführt. 
+Hierzu zählen insbesondere Gruppen, zyklische Gruppen, modulare 
+Arithmetik sowie das diskrete Logarithmusproblem.
+
 \subsection{Gruppen und zyklische Gruppen}
-\todo{Gruppe mit Verknüpfung definieren: Abgeschlossenheit, Assoziativität,
- neutrales Element und inverse Elemente. Ein kleines Beispiel geben.
- Danach endliche zyklische Gruppe, Generator und Gruppenordnung erklären.}
-% Beispiel für eine Definitionsumgebung:
-% \begin{definition}[Zyklische Gruppe]
-% Eine Gruppe ...
-% \end{definition}
+
+Eine Gruppe ist eine algebraische Struktur, die aus einer Menge 
+und einer darauf definierten binären Verknüpfung besteht. Gruppen 
+bilden eine wesentliche Grundlage moderner asymmetrischer 
+kryptografischer Verfahren.
+
+\begin{definition}[Gruppe]
+Eine Gruppe $(G,\circ)$ besteht aus einer nichtleeren Menge $G$ 
+und einer binären Verknüpfung
+\[
+    \circ \colon G \times G \to G,
+\]
+für die folgende Eigenschaften gelten:
+
+\begin{enumerate}
+    \item \textbf{Abgeschlossenheit:}
+    Für alle $a,b\in G$ gilt
+    \[
+        a\circ b\in G.
+    \]
+
+    \item \textbf{Assoziativität:}
+    Für alle $a,b,c\in G$ gilt
+    \[
+        (a\circ b)\circ c=a\circ(b\circ c).
+    \]
+
+    \item \textbf{Neutrales Element:}
+    Es existiert ein Element $e\in G$, sodass für alle 
+    $a\in G$ gilt
+    \[
+        a\circ e=e\circ a=a.
+    \]
+
+    \item \textbf{Inverse Elemente:}
+    Zu jedem Element $a\in G$ existiert ein inverses 
+    Element $a^{-1}\in G$, sodass
+    \[
+        a\circ a^{-1}=a^{-1}\circ a=e.
+    \]
+\end{enumerate}
+\end{definition}
+
+Gilt zusätzlich für alle $a,b\in G$
+\[
+    a\circ b=b\circ a,
+\]
+so wird die Gruppe als kommutative oder abelsche Gruppe 
+bezeichnet.
+
+Ein einfaches Beispiel ist die Menge der ganzen Zahlen 
+$\Z$ mit der Addition. Die Summe zweier ganzer Zahlen ist 
+erneut eine ganze Zahl, die Addition ist assoziativ, das 
+neutrale Element ist $0$ und das inverse Element einer 
+Zahl $a$ ist $-a$. Somit bildet $(\Z,+)$ eine abelsche Gruppe.
+
+Für kryptografische Anwendungen sind insbesondere endliche 
+zyklische Gruppen von Bedeutung.
+
+\begin{definition}[Zyklische Gruppe]
+Eine Gruppe $\G$ heißt zyklisch, wenn ein Element 
+$g\in\G$ existiert, durch dessen wiederholte Verknüpfung 
+sämtliche Elemente der Gruppe erzeugt werden können.
+
+In multiplikativer Schreibweise gilt
+\[
+    \G=\langle g\rangle
+      =\{g^k\mid k\in\Z\}.
+\]
+
+Das Element $g$ wird als Generator oder erzeugendes 
+Element der Gruppe bezeichnet.
+\end{definition}
+
+Die Anzahl der Elemente einer endlichen Gruppe wird als 
+Gruppenordnung bezeichnet. Besitzt eine zyklische Gruppe 
+$\G$ die Ordnung $q$, so gilt
+\[
+    |\G|=q
+\]
+und
+\[
+    \G=\{e,g,g^2,\ldots,g^{q-1}\}.
+\]
+
+Für einen Generator $g$ einer Gruppe der Ordnung $q$ gilt 
+insbesondere
+\[
+    g^q=e.
+\]
+
+Dabei ist $q$ die kleinste positive ganze Zahl, für die 
+diese Gleichung erfüllt ist. Die Ordnung eines Generators 
+entspricht somit der Ordnung der gesamten Gruppe.
+
+Jede zyklische Gruppe ist abelsch. Besitzt eine zyklische 
+Gruppe eine prime Ordnung $q$, so ist jedes vom neutralen 
+Element verschiedene Gruppenelement ebenfalls ein 
+Generator der Gruppe.
+
+
 \subsection{Modulare Arithmetik und Untergruppen}
-\todo{Rechnen modulo einer Zahl erklären. Für das spätere Beispiel eine
- Untergruppe von $\Z_p^*$ mit primer Ordnung $q$ und $q\mid(p-1)$ einführen.
- Gruppenelemente werden modulo $p$, Exponenten modulo $q$ berechnet.}
+
+Die modulare Arithmetik beschäftigt sich mit der Berechnung 
+von Restklassen bezüglich einer positiven ganzen Zahl $n$, 
+die als Modulus bezeichnet wird.
+
+Zwei ganze Zahlen $a$ und $b$ heißen kongruent modulo $n$, 
+wenn ihre Differenz durch $n$ teilbar ist:
+\[
+    a\equiv b\pmod n
+    \quad\Longleftrightarrow\quad
+    n\mid(a-b).
+\]
+
+Beispielsweise gilt
+\[
+    17\equiv 2\pmod 5,
+\]
+da $17-2=15$ durch $5$ teilbar ist.
+
+Die Menge der Restklassen modulo $n$ wird mit $\Z_n$ 
+bezeichnet. Sie kann durch die Repräsentanten
+\[
+    \Z_n=\{0,1,\ldots,n-1\}
+\]
+dargestellt werden.
+
+Addition und Multiplikation werden dabei modulo $n$ 
+ausgeführt. Beispielsweise gilt in $\Z_5$
+\[
+    3+4\equiv 2\pmod 5
+\]
+sowie
+\[
+    3\cdot 4\equiv 2\pmod 5.
+\]
+
+Für eine Primzahl $p$ bilden die von null verschiedenen 
+Restklassen modulo $p$ bezüglich der modularen Multiplikation 
+eine Gruppe:
+\[
+    \Z_p^*=\{1,2,\ldots,p-1\}.
+\]
+
+Diese multiplikative Gruppe besitzt die Ordnung $p-1$ und 
+ist zyklisch. Jedes ihrer Elemente besitzt ein 
+multiplikatives Inverses modulo $p$.
+
+Für kryptografische Verfahren wie das 
+Schnorr-Identifikationsprotokoll wird häufig eine zyklische 
+Untergruppe primer Ordnung verwendet.
+
+\begin{definition}[Untergruppe]
+Eine nichtleere Teilmenge $H\subseteq G$ einer Gruppe 
+$(G,\circ)$ heißt Untergruppe, wenn sie bezüglich derselben 
+Verknüpfung selbst eine Gruppe bildet.
+\end{definition}
+
+Seien $p$ und $q$ Primzahlen, für die
+\[
+    q\mid(p-1)
+\]
+gilt. Da die multiplikative Gruppe $\Z_p^*$ zyklisch ist, 
+existiert eine Untergruppe $\G\subseteq\Z_p^*$ der Ordnung $q$.
+
+Ein Generator $g$ dieser Untergruppe kann beispielsweise 
+aus einem Element $h\in\Z_p^*$ durch
+\[
+    g=h^{(p-1)/q}\bmod p
+\]
+bestimmt werden, sofern $g\neq 1$ gilt.
+
+Nach dem kleinen Satz von Fermat folgt
+\[
+    g^q
+    \equiv h^{p-1}
+    \equiv 1
+    \pmod p.
+\]
+
+Da $q$ prim ist und $g\neq 1$ gilt, besitzt $g$ genau 
+die Ordnung $q$. Damit erzeugt $g$ die Untergruppe
+\[
+    \G=\langle g\rangle.
+\]
+
+\paragraph{Beispiel.}
+
+Zur Veranschaulichung werden die Primzahlen
+\[
+    p=23,\qquad q=11
+\]
+gewählt. Es gilt
+\[
+    q\mid(p-1),
+\]
+da $11$ ein Teiler von $22$ ist.
+
+Mit $h=5$ ergibt sich
+\[
+    g=5^{22/11}\bmod 23
+     =5^2\bmod 23
+     =2.
+\]
+
+Das Element $g=2$ besitzt modulo $23$ die Ordnung $11$, 
+denn
+\[
+    2^{11}\equiv 1\pmod{23}.
+\]
+
+Die erzeugte Untergruppe lautet
+\[
+    \G=
+    \{1,2,4,8,16,9,18,13,3,6,12\}.
+\]
+
+Damit besitzt $\G$ genau elf Elemente.
+
+Bei der Verwendung einer solchen Untergruppe muss zwischen 
+zwei unterschiedlichen modularen Berechnungen unterschieden 
+werden:
+
+\begin{itemize}
+    \item Operationen auf Gruppenelementen werden 
+    modulo $p$ berechnet.
+    \item Operationen auf Exponenten werden 
+    modulo $q$ berechnet.
+\end{itemize}
+
+Da $g^q\equiv 1\pmod p$ gilt, können Exponenten modulo $q$ 
+reduziert werden, ohne das resultierende Gruppenelement 
+zu verändern.
+
+Für beliebige ganze Zahlen $a$ und $k$ gilt daher
+\[
+    g^{a+kq}\equiv g^a\pmod p.
+\]
+
+Beispielsweise ergibt sich für die gewählten Parameter
+\[
+    2^{14}
+    \equiv 2^{14\bmod 11}
+    \equiv 2^3
+    \equiv 8
+    \pmod{23}.
+\]
+
+Die kleinen Parameter dieses Beispiels dienen ausschließlich 
+der Veranschaulichung. Für einen kryptografisch sicheren 
+Einsatz sind wesentlich größere und geeignet gewählte 
+Parameter erforderlich.
+
+
 \subsection{Das diskrete Logarithmusproblem}
-\todo{Für $\G=\langle g\rangle$ und $y=g^x$ das Problem der Bestimmung
- von $x$ definieren. Leichte Vorwärtsberechnung und angenommene Schwierigkeit
- der Umkehrung unterscheiden. Die Schwierigkeit hängt von Gruppe und Parametern ab.}
+
+Die Sicherheit des Schnorr-Identifikationsprotokolls beruht 
+wesentlich auf der angenommenen Schwierigkeit des diskreten 
+Logarithmusproblems.
+
+\begin{definition}[Diskretes Logarithmusproblem]
+Sei $\G=\langle g\rangle$ eine endliche zyklische Gruppe 
+der Ordnung $q$ mit Generator $g$.
+
+Für ein gegebenes Gruppenelement $y\in\G$ besteht das 
+diskrete Logarithmusproblem (Discrete Logarithm Problem, 
+DLP) darin, einen Exponenten $x\in\Z_q$ zu bestimmen, 
+sodass
+\[
+    y=g^x
+\]
+gilt.
+
+Der Exponent $x$ wird als diskreter Logarithmus von $y$ 
+zur Basis $g$ bezeichnet:
+\[
+    x=\log_g(y).
+\]
+\end{definition}
+
+In einer zyklischen Gruppe der Ordnung $q$ ist dieser 
+Exponent modulo $q$ eindeutig bestimmt.
+
+Im Fall einer multiplikativen Untergruppe von $\Z_p^*$ 
+lautet die entsprechende Gleichung
+\[
+    y\equiv g^x\pmod p.
+\]
+
+Während die Berechnung von $y$ aus einem bekannten 
+Exponenten $x$ mithilfe effizienter Verfahren zur modularen 
+Exponentiation möglich ist, gilt die Umkehrung für 
+geeignet gewählte Gruppen und ausreichend große Parameter 
+als rechnerisch schwierig.
+
+Diese Eigenschaft ermöglicht die Verwendung der modularen 
+Exponentiation als kryptografische Einwegfunktion unter 
+der Annahme, dass das diskrete Logarithmusproblem in der 
+verwendeten Gruppe praktisch nicht effizient lösbar ist.
+
+\paragraph{Beispiel.}
+
+Für die zuvor eingeführten Parameter
+\[
+    p=23,\qquad q=11,\qquad g=2
+\]
+wird der geheime Exponent
+\[
+    x=7
+\]
+gewählt.
+
+Der zugehörige öffentliche Wert lässt sich durch modulare 
+Exponentiation berechnen:
+\[
+    y=g^x\bmod p
+     =2^7\bmod 23
+     =13.
+\]
+
+Das diskrete Logarithmusproblem besteht in diesem Fall 
+darin, aus den öffentlich bekannten Werten $p=23$, 
+$q=11$, $g=2$ und $y=13$ den Exponenten $x$ zu bestimmen:
+\[
+    2^x\equiv 13\pmod{23}.
+\]
+
+Aufgrund der kleinen Gruppenordnung kann die Lösung durch 
+systematisches Ausprobieren aller möglichen Exponenten 
+leicht gefunden werden. Bei ausreichend großen Gruppen 
+ist eine solche vollständige Suche hingegen praktisch 
+nicht durchführbar.
+
+Neben der vollständigen Suche existieren weitere 
+Algorithmen zur Berechnung diskreter Logarithmen. Dazu 
+zählen beispielsweise der Baby-Step-Giant-Step-Algorithmus 
+und der Pollard-Rho-Algorithmus. Für bestimmte Gruppen 
+existieren zudem spezialisierte Verfahren.
+
+Die Schwierigkeit des diskreten Logarithmusproblems hängt 
+daher nicht ausschließlich von der Gruppenordnung, sondern 
+auch von der mathematischen Struktur der verwendeten Gruppe 
+und den verfügbaren Lösungsalgorithmen ab.
+
+Im Schnorr-Identifikationsprotokoll dient der Exponent $x$ 
+als geheimer Schlüssel, während $y=g^x$ den zugehörigen 
+öffentlichen Schlüssel darstellt. Ein Teilnehmer kann 
+mithilfe des Protokolls den Besitz des geheimen Schlüssels 
+nachweisen, ohne diesen unmittelbar offenzulegen.
+
+
 \subsection{Verwendete Notation}
+
+Für die Beschreibung des Schnorr-Identifikationsprotokolls 
+wird im weiteren Verlauf dieser Arbeit eine zyklische 
+Gruppe $\G=\langle g\rangle$ primer Ordnung $q$ verwendet.
+
+Die nachfolgende Tabelle fasst die verwendeten Symbole 
+und deren Bedeutung zusammen.
+
 \begin{center}
 \begin{tabular}{ll}
 \toprule
 Symbol & Bedeutung \\
 \midrule
-$\G$, $q$, $g$ & Zyklische Gruppe, prime Ordnung, Generator \\
-$x\in\Z_q$, $y=g^x$ & Geheimer und öffentlicher Schlüssel \\
-$r\in\Z_q$, $t=g^r$ & Frischer Zufallswert und Commitment \\
-$c\in\Z_q$, $s\in\Z_q$ & Challenge und Response \\
+$p$ & Primzahl als Modulus der Gruppenelemente \\
+$q$ & Prime Ordnung der zyklischen Gruppe \\
+$\G$ & Zyklische Gruppe der Ordnung $q$ \\
+$g$ & Generator der Gruppe $\G$ \\
+$e$ & Neutrales Element der Gruppe \\
+$x\in\Z_q$ & Geheimer Schlüssel \\
+$y=g^x$ & Öffentlicher Schlüssel \\
+$r\in\Z_q$ & Frischer Zufallswert (Nonce) \\
+$t=g^r$ & Commitment \\
+$c\in\Z_q$ & Challenge \\
+$s\in\Z_q$ & Response \\
 \bottomrule
 \end{tabular}
 \end{center}
-\todo{Notation im gesamten Paper konsistent halten; abweichende Vorzeichen
- in Quellen ausdrücklich übersetzen. Alle später benötigten Begriffe hier erklären.}
+
+Der geheime Schlüssel $x$ wird vom beweisenden Teilnehmer 
+(Prover) geheim gehalten. Der öffentliche Schlüssel $y$ 
+steht hingegen dem prüfenden Teilnehmer (Verifier) zur 
+Verfügung.
+
+Für jede Ausführung des Protokolls wird ein neuer, 
+unabhängiger und kryptografisch sicherer Zufallswert $r$ 
+aus $\Z_q$ gewählt. Aus diesem Wert wird das Commitment 
+$t=g^r$ berechnet.
+
+Die Challenge $c$ wird im interaktiven Protokoll durch 
+den Verifier zufällig gewählt. Der Prover berechnet 
+anschließend unter Verwendung seines geheimen Schlüssels 
+$x$ die Response $s$.
+
+In dieser Arbeit wird folgende Vorzeichenkonvention 
+verwendet:
+\[
+    y=g^x,
+    \qquad
+    t=g^r,
+    \qquad
+    s=(r+cx)\bmod q.
+\]
+
+Die zugehörige Verifikationsgleichung lautet
+\[
+    g^s=t\cdot y^c.
+\]
+
+Für die konkrete Realisierung in einer Untergruppe von 
+$\Z_p^*$ ergibt sich
+\[
+    g^s\equiv t\cdot y^c\pmod p.
+\]
+
+In der Literatur finden sich teilweise alternative 
+Darstellungen des Schnorr-Protokolls, beispielsweise mit 
+einer Subtraktion bei der Berechnung der Response oder 
+einem invers definierten öffentlichen Schlüssel. Solche 
+Darstellungen sind bei konsistenter Anpassung der 
+Verifikationsgleichung mathematisch äquivalent.
+
+Im weiteren Verlauf dieser Arbeit wird ausschließlich 
+die oben eingeführte Vorzeichenkonvention verwendet, 
+um Mehrdeutigkeiten zu vermeiden.
+
+Sofern nicht ausdrücklich anders angegeben, werden 
+Operationen auf Gruppenelementen modulo $p$ und 
+Operationen auf Exponenten modulo $q$ durchgeführt.
