@@ -1,24 +1,1088 @@
+
 % !TeX root = ../main.tex
+
 \section{Praxisbezug und Aufwandsabschätzung}\label{sec:praxis}
-% Die Mail lässt alternativ Anwendungsfälle statt eines ausführlichen Beispiels zu.
-% Nicht benötigte Unterabschnitte nach der Entscheidung entfernen.
-\subsection{Optional: Ein kleines Rechenbeispiel}
-\todo{Ein vollständiges, ausdrücklich unsicheres Lernbeispiel durchrechnen:
- etwa $p=23$, $q=11$, $g=2$, $x=3$, $r=4$ und $c=5$.
- Öffentlichen Schlüssel, Commitment, Response und Prüfung selbst berechnen.
- Kleine Zahlen dienen ausschließlich der Nachvollziehbarkeit.}
+
+Nachdem in den vorherigen Abschnitten die mathematischen
+Grundlagen und der Ablauf des Schnorr-Identifikationsprotokolls
+beschrieben wurden, wird im Folgenden dessen praktische
+Bedeutung untersucht.
+
+Hierzu werden zunächst der Aufwand möglicher Angriffe
+und die Auswirkungen unterschiedlicher Gruppenordnungen
+betrachtet. Anschließend werden konkrete Anwendungsfälle
+sowie verwandte kryptografische Verfahren vorgestellt.
+
+
+\subsection{Ein kleines Rechenbeispiel}
+
+Das numerische Beispiel aus Abschnitt~\ref{sec:protokoll}
+veranschaulicht die Funktionsweise des Schnorr-Protokolls
+anhand der Parameter
+\[
+    p=23,\qquad q=11,\qquad g=2.
+\]
+
+Für den geheimen Schlüssel $x=7$, den Zufallswert $r=4$
+und die Challenge $c=3$ ergibt sich das akzeptierende
+Transkript
+\[
+    (t,c,s)=(16,3,3).
+\]
+
+Der zugehörige öffentliche Schlüssel lautet $y=13$.
+
+Obwohl das Protokoll mathematisch korrekt ausgeführt
+wird, bieten diese Parameter keine praktische
+kryptografische Sicherheit.
+
+Ein Angreifer, der lediglich die öffentlichen Werte
+$p$, $q$, $g$ und $y$ kennt, kann sämtliche möglichen
+privaten Schlüssel ausprobieren.
+
+Die folgende Tabelle zeigt die Berechnung der Potenzen
+des Generators $g=2$ modulo $23$.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{rr}
+        \toprule
+        Exponent $k$ & $g^k\bmod p$\\
+        \midrule
+        0 & 1\\
+        1 & 2\\
+        2 & 4\\
+        3 & 8\\
+        4 & 16\\
+        5 & 9\\
+        6 & 18\\
+        7 & 13\\
+        8 & 3\\
+        9 & 6\\
+        10 & 12\\
+        \bottomrule
+    \end{tabular}
+    \caption{Vollständige Suche nach dem diskreten
+    Logarithmus in einer kleinen zyklischen Gruppe}
+    \label{tab:bruteforce-beispiel}
+\end{table}
+
+Da der öffentliche Schlüssel den Wert $y=13$ besitzt,
+kann aus Tabelle~\ref{tab:bruteforce-beispiel}
+unmittelbar der geheime Schlüssel
+\[
+    x=7
+\]
+abgelesen werden.
+
+Ein Angreifer könnte sich anschließend mit diesem
+Schlüssel gegenüber einem Verifier authentifizieren.
+
+Das Beispiel zeigt, dass die mathematische Korrektheit
+eines kryptografischen Protokolls allein keine
+ausreichende Sicherheit garantiert.
+
+Die Sicherheit hängt wesentlich von der Größe und
+Struktur der verwendeten Gruppe sowie von der Qualität
+der Implementierung ab.
+
+
 \subsection{Aufwand eines Angriffs}
-\todo{Das Angriffsziel festlegen: Schlüsselrückgewinnung durch diskreten
- Logarithmus oder erfolgreiche Täuschung in einer Protokollrunde.
- Brute Force und generische Verfahren wie Baby-Step--Giant-Step bzw.
- Pollard-Rho anhand belastbarer Quellen vergleichen: Gruppenoperationen,
- Speicherbedarf und Abhängigkeit von $q$ angeben.}
-\todo{Bei einer Zeitabschätzung die angenommene Rate der Gruppenoperationen
- explizit nennen. Für Untergruppen endlicher Körper auch spezialisierte
- Angriffe berücksichtigen; aus $q$ allein folgt dort kein Sicherheitsniveau.
- Das Lernbeispiel klar von realistischen Parametern trennen.}
+
+Für die Bewertung der Sicherheit des
+Schnorr-Identifikationsprotokolls müssen unterschiedliche
+Angriffsziele voneinander unterschieden werden.
+
+Ein Angreifer kann beispielsweise versuchen,
+
+\begin{enumerate}
+    \item den langfristigen geheimen Schlüssel $x$
+    aus dem öffentlichen Schlüssel $y$ zu berechnen,
+
+    \item einen Verifier erfolgreich zu täuschen,
+    ohne den geheimen Schlüssel zu kennen,
+
+    \item Schwachstellen der Implementierung
+    auszunutzen, etwa eine fehlerhafte Erzeugung
+    temporärer Zufallswerte.
+\end{enumerate}
+
+Die ersten beiden Angriffsziele werden im Folgenden
+näher untersucht.
+
+Angriffe auf die Implementierung, insbesondere die
+Wiederverwendung von Zufallswerten, wurden bereits in
+Abschnitt~\ref{sec:protokoll} betrachtet.
+
+
+\subsubsection{Schlüsselrückgewinnung durch Brute Force}
+
+Ein grundlegender Angriff auf das Schnorr-Protokoll
+besteht darin, den diskreten Logarithmus des öffentlichen
+Schlüssels zu berechnen.
+
+Gegeben sind die öffentlichen Parameter
+$\G$, $q$, $g$ sowie der öffentliche Schlüssel
+\[
+    y=g^x.
+\]
+
+Gesucht wird der geheime Exponent
+\[
+    x\in\Z_q\setminus\{0\}.
+\]
+
+Bei einer vollständigen Suche, auch als Brute-Force-Angriff
+bezeichnet, werden sämtliche möglichen Exponenten
+systematisch überprüft.
+
+Hierzu wird für jeden Kandidaten $k$ geprüft, ob
+\[
+    g^k=y
+\]
+gilt.
+
+Sobald die Gleichung erfüllt ist, wurde der gesuchte
+diskrete Logarithmus gefunden.
+
+Die einzelnen Potenzen müssen dabei nicht vollständig
+neu berechnet werden. Stattdessen können sie schrittweise
+durch Multiplikation mit dem Generator erzeugt werden:
+\[
+    g^{k+1}=g^k\cdot g.
+\]
+
+Bei einem gleichverteilt gewählten geheimen Schlüssel
+sind durchschnittlich etwa
+\[
+    \frac{q}{2}
+\]
+Versuche erforderlich.
+
+Im schlechtesten Fall müssen alle $q-1$ möglichen
+von null verschiedenen Exponenten überprüft werden.
+
+Die asymptotische Laufzeit beträgt somit
+\[
+    \mathcal{O}(q)
+\]
+Gruppenoperationen.
+
+Da bei der Suche lediglich eine konstante Anzahl
+von Gruppenelementen gleichzeitig gespeichert werden
+muss, beträgt der zusätzliche Speicherbedarf
+\[
+    \mathcal{O}(1)
+\]
+Gruppenelemente.
+
+Eine vollständige Suche ist bei ausreichend großer
+Gruppenordnung praktisch nicht durchführbar.
+Allerdings existieren effizientere Algorithmen zur
+Berechnung diskreter Logarithmen
+\cite[Abschnitt 3.6.1]{menezes1996}.
+
+
+\subsubsection{Baby-Step--Giant-Step}
+
+Der Baby-Step--Giant-Step-Algorithmus ist ein
+generisches Verfahren zur Berechnung diskreter
+Logarithmen in zyklischen Gruppen.
+
+Im Unterschied zur vollständigen Suche reduziert
+der Algorithmus die Anzahl erforderlicher
+Gruppenoperationen durch die Verwendung einer
+vorberechneten Tabelle.
+
+Hierzu wird zunächst
+\[
+    m=\left\lceil\sqrt{q}\right\rceil
+\]
+gewählt.
+
+Jeder gesuchte Exponent $x$ mit $0\leq x<q$
+kann in der Form
+\[
+    x=im+j
+\]
+mit geeigneten ganzen Zahlen $i,j$ und
+$0\leq i,j<m$ dargestellt werden.
+
+Aus
+\[
+    y=g^{im+j}
+\]
+folgt durch Umformung
+\[
+    y\cdot g^{-im}=g^j.
+\]
+
+Der Algorithmus berechnet zunächst die sogenannten
+Baby Steps
+\[
+    g^j
+    \qquad\text{für}\qquad
+    0\leq j<m
+\]
+und speichert sie in einer Tabelle.
+
+Anschließend werden die Giant Steps
+\[
+    y\cdot g^{-im}
+\]
+berechnet und mit den gespeicherten Gruppenelementen
+verglichen.
+
+Wird eine Übereinstimmung gefunden, kann der
+gesuchte Exponent durch
+\[
+    x=im+j\bmod q
+\]
+bestimmt werden.
+
+Der Algorithmus benötigt
+\[
+    \mathcal{O}(\sqrt{q})
+\]
+Gruppenoperationen sowie Speicherplatz für
+\[
+    \mathcal{O}(\sqrt{q})
+\]
+Gruppenelemente.
+
+Bei Verwendung einer geeigneten Hashtabelle können
+die gespeicherten Werte effizient nachgeschlagen
+werden. Bei einer sortierten Tabelle entsteht
+zusätzlicher Aufwand für die Sortierung und Suche.
+
+Damit ist der Baby-Step--Giant-Step-Algorithmus
+deutlich effizienter als eine vollständige Suche.
+
+Sein erheblicher Speicherbedarf begrenzt jedoch
+die praktische Anwendbarkeit bei großen Gruppen
+\cite[Abschnitt 3.6.2]{menezes1996}.
+
+
+\subsubsection{Pollard-Rho-Algorithmus}
+
+Ein weiteres generisches Verfahren zur Berechnung
+diskreter Logarithmen ist der Pollard-Rho-Algorithmus.
+
+Dieser verwendet eine Folge pseudozufällig erzeugter
+Gruppenelemente und sucht nach einer Kollision,
+also nach zwei übereinstimmenden Gruppenelementen.
+
+Die mathematische Grundlage des Verfahrens ist
+mit dem Geburtstagsparadoxon verwandt.
+
+Für eine Menge mit $q$ Elementen ist unter einer
+geeigneten Zufallsannahme bereits nach ungefähr
+$\sqrt{q}$ Beobachtungen mit einer Kollision
+zu rechnen.
+
+Der Pollard-Rho-Algorithmus benötigt daher im
+Erwartungswert
+\[
+    \mathcal{O}(\sqrt{q})
+\]
+Gruppenoperationen.
+
+Im Gegensatz zum Baby-Step--Giant-Step-Algorithmus
+müssen jedoch nicht sämtliche bisher erzeugten
+Gruppenelemente gespeichert werden.
+
+Bei Verwendung eines geeigneten Verfahrens zur
+Zyklenerkennung benötigt die klassische serielle
+Variante lediglich eine konstante Anzahl von
+Gruppenelementen und Skalaren:
+\[
+    \mathcal{O}(1).
+\]
+
+Die tatsächlich benötigte Anzahl an Operationen
+ist zufallsabhängig. Ein erfolgloser Durchlauf
+kann mit anderen Startwerten wiederholt werden.
+
+Durch die Kombination aus vergleichsweise geringer
+Laufzeitkomplexität und geringem Speicherbedarf
+ist Pollard-Rho für die Bewertung der Sicherheit
+großer zyklischer Gruppen besonders relevant
+\cite[Abschnitt 3.6.3]{menezes1996}.
+
+
+\subsubsection{Vergleich der Angriffsverfahren}
+
+Tabelle~\ref{tab:dlog-algorithmen} fasst die
+asymptotischen Eigenschaften der beschriebenen
+generischen Angriffsverfahren zusammen.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        Verfahren & Gruppenoperationen & Speicherbedarf\\
+        \midrule
+        Brute Force
+            & $\mathcal{O}(q)$
+            & $\mathcal{O}(1)$\\
+        Baby-Step--Giant-Step
+            & $\mathcal{O}(\sqrt{q})$
+            & $\mathcal{O}(\sqrt{q})$\\
+        Pollard-Rho
+            & $\mathcal{O}(\sqrt{q})$
+            & $\mathcal{O}(1)$\\
+        \bottomrule
+    \end{tabular}
+    \caption{Vergleich generischer Algorithmen zur
+    Berechnung diskreter Logarithmen.
+    Die Angaben zu Pollard-Rho beziehen sich auf den
+    erwarteten Aufwand der klassischen seriellen Variante.
+    Der Speicherbedarf wird in Gruppenelementen und
+    Skalaren angegeben. Eigene Darstellung nach
+    \cite[Abschnitt 3.6]{menezes1996}.}
+    \label{tab:dlog-algorithmen}
+\end{table}
+
+Aus dem Vergleich ergibt sich, dass die Sicherheit
+einer zyklischen Gruppe nicht allein anhand der
+Anzahl möglicher privater Schlüssel bewertet
+werden darf.
+
+Besitzt die Gruppe eine Ordnung mit ungefähr
+$n$ Bit, also
+\[
+    q\approx 2^n,
+\]
+so benötigen generische Verfahren wie Pollard-Rho
+ungefähr
+\[
+    \sqrt{q}\approx 2^{n/2}
+\]
+Gruppenoperationen.
+
+Eine Gruppenordnung von ungefähr $256$ Bit
+entspricht daher hinsichtlich solcher generischen
+Angriffe einem Aufwand in der Größenordnung
+von $2^{128}$ Gruppenoperationen.
+
+Diese Aussage beschreibt ausschließlich die
+generische Angriffskomplexität und setzt voraus,
+dass keine effizienteren gruppenspezifischen
+Angriffe anwendbar sind.
+
+
+\subsection{Konkrete Zeitabschätzung}
+
+Um die Größenordnung des erforderlichen
+Rechenaufwands zu verdeutlichen, wird im Folgenden
+eine hypothetische Zeitabschätzung vorgenommen.
+
+Dabei wird angenommen, dass einem Angreifer eine
+Rechenleistung von
+\[
+    R=10^{12}
+\]
+Gruppenoperationen pro Sekunde zur Verfügung steht.
+
+Diese Rate ist eine bewusst gewählte Modellannahme
+und kein gemessener Leistungswert realer Hardware.
+
+Insbesondere hängt die tatsächlich erreichbare Rate
+von der verwendeten Gruppe, der Größe ihrer Elemente,
+der Implementierung und der eingesetzten Hardware ab.
+
+Für einen generischen Angriff mit einem angenommenen
+Aufwand von
+\[
+    N=\sqrt{q}
+\]
+Gruppenoperationen ergibt sich die geschätzte
+Angriffsdauer zu
+\begin{equation}\label{eq:angriffsdauer}
+    T=\frac{\sqrt{q}}{R}.
+\end{equation}
+
+Konstante Faktoren, zusätzlicher Rechenaufwand und
+mögliche Parallelisierungseffekte werden in dieser
+vereinfachten Betrachtung nicht berücksichtigt.
+
+\subsubsection*{Beispiel für eine Gruppenordnung von
+128 Bit}
+
+Für eine Gruppenordnung von ungefähr
+\[
+    q\approx 2^{128}
+\]
+ergibt sich ein generischer Rechenaufwand von
+\[
+    N\approx 2^{64}
+     \approx 1{,}84\cdot 10^{19}
+\]
+Gruppenoperationen.
+
+Unter der angenommenen Operationsrate beträgt die
+Angriffsdauer
+\begin{align*}
+    T
+        &\approx\frac{2^{64}}{10^{12}}\\
+        &\approx 1{,}84\cdot 10^7
+        \text{ Sekunden}.
+\end{align*}
+
+Dies entspricht ungefähr
+\[
+    T\approx 213{,}5\text{ Tagen}.
+\]
+
+Das Beispiel zeigt, dass eine Gruppenordnung von
+128 Bit nicht mit einem Sicherheitsniveau von
+128 Bit gleichgesetzt werden darf.
+
+
+\subsubsection*{Beispiel für eine Gruppenordnung von
+256 Bit}
+
+Für eine Gruppenordnung von ungefähr
+\[
+    q\approx 2^{256}
+\]
+ergibt sich ein generischer Rechenaufwand von
+\[
+    N\approx 2^{128}
+     \approx 3{,}40\cdot 10^{38}
+\]
+Gruppenoperationen.
+
+Unter derselben angenommenen Operationsrate beträgt
+die Angriffsdauer
+\begin{align*}
+    T
+        &\approx\frac{2^{128}}{10^{12}}\\
+        &\approx 3{,}40\cdot 10^{26}
+        \text{ Sekunden}.
+\end{align*}
+
+Unter Verwendung von 365,25 Tagen pro Jahr ergibt
+sich daraus eine Dauer von ungefähr
+\[
+    T\approx 1{,}08\cdot 10^{19}
+    \text{ Jahren}.
+\]
+
+Diese Größenordnung liegt weit außerhalb praktisch
+relevanter Zeiträume.
+
+Tabelle~\ref{tab:angriffszeiten} vergleicht die
+geschätzte Dauer für unterschiedliche Bitlängen
+der Gruppenordnung.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{rrl}
+        \toprule
+        Bitlänge von $q$
+            & Generischer Aufwand
+            & Geschätzte Dauer\\
+        \midrule
+        64 Bit  & $2^{32}$  & 4,29 Millisekunden\\
+        128 Bit & $2^{64}$  & 213,5 Tage\\
+        160 Bit & $2^{80}$  & $3{,}83\cdot 10^4$ Jahre\\
+        192 Bit & $2^{96}$  & $2{,}51\cdot 10^9$ Jahre\\
+        256 Bit & $2^{128}$ & $1{,}08\cdot 10^{19}$ Jahre\\
+        \bottomrule
+    \end{tabular}
+    \caption{Theoretische Zeitabschätzung generischer
+    Angriffe bei angenommenen $10^{12}$ Gruppenoperationen
+    pro Sekunde. Eigene Berechnung gemäß
+    Gleichung~\eqref{eq:angriffsdauer}.}
+    \label{tab:angriffszeiten}
+\end{table}
+
+Die dargestellten Werte sind keine Prognosen für
+konkrete Angriffe. Sie dienen ausschließlich der
+Veranschaulichung des Zusammenhangs zwischen
+Gruppenordnung und generischer Angriffskomplexität.
+
+
+\subsubsection{Speicherbedarf generischer Angriffe}
+
+Neben dem zeitlichen Aufwand ist auch der
+Speicherbedarf eines Angriffs von Bedeutung.
+
+Für eine Gruppe mit einer Ordnung von ungefähr
+$2^{256}$ müsste der Baby-Step--Giant-Step-Algorithmus
+eine Tabelle mit ungefähr
+\[
+    2^{128}
+\]
+Gruppenelementen anlegen.
+
+Wird beispielhaft eine Darstellung von 32 Byte
+pro Gruppenelement angenommen, ergibt sich bereits
+für diese Elemente ein Speicherbedarf von
+\begin{align*}
+    S
+        &\approx 32\cdot 2^{128}\\
+        &=2^{133}\text{ Byte}\\
+        &\approx 1{,}09\cdot 10^{40}
+        \text{ Byte}.
+\end{align*}
+
+Die Speicherung zugehöriger Exponenten sowie
+zusätzlicher Tabellenstrukturen würde den Bedarf
+weiter erhöhen.
+
+Die angenommene Elementgröße dient lediglich der
+Illustration. Bei einer multiplikativen Untergruppe
+eines großen endlichen Körpers können Gruppenelemente
+wesentlich mehr Speicherplatz benötigen.
+
+Der Pollard-Rho-Algorithmus besitzt hingegen einen
+wesentlich geringeren Speicherbedarf und ist
+deshalb für generische Sicherheitsabschätzungen
+besonders relevant.
+
+
+\subsubsection{Spezialisierte Angriffe auf endliche Körper}
+
+Die bisher betrachteten Algorithmen sind generisch,
+da sie keine besonderen algebraischen Eigenschaften
+der verwendeten Gruppe ausnutzen.
+
+Für bestimmte Gruppen existieren jedoch
+spezialisierte Verfahren, die effizienter als
+generische Algorithmen sein können.
+
+Bei multiplikativen Gruppen endlicher Körper zählen
+hierzu insbesondere Index-Calculus-Verfahren und
+darauf aufbauende Varianten des Number Field Sieve.
+
+Diese Verfahren nutzen die konkrete mathematische
+Darstellung der Gruppenelemente aus.
+
+Für große Primkörper ist der asymptotische Aufwand
+des allgemeinen Number Field Sieve zur Berechnung
+diskreter Logarithmen subexponentiell in der
+Bitlänge des Körpermodulus.
+
+Daher hängt die Sicherheit einer Untergruppe von
+$\Z_p^*$ nicht nur von ihrer Gruppenordnung $q$,
+sondern auch wesentlich von der Größe und Struktur
+des Primzahlmodulus $p$ ab
+\cite[Kapitel 15]{galbraith2012}.
+
+Eine große Gruppenordnung allein garantiert
+in diesem Fall kein entsprechendes Sicherheitsniveau.
+
+Bei geeigneten elliptischen Kurven sind hingegen
+keine klassischen subexponentiellen Algorithmen
+zur Lösung des allgemeinen elliptischen diskreten
+Logarithmusproblems bekannt.
+
+Für solche Kurven stellen generische Angriffe
+wie Pollard-Rho daher eine wesentliche Grundlage
+der Sicherheitsabschätzung dar.
+
+Diese Aussage gilt nicht uneingeschränkt für
+jede elliptische Kurve. Bestimmte spezielle Kurven
+können zusätzliche mathematische Schwächen
+aufweisen.
+
+Für die praktische Auswahl kryptografischer
+Parameter müssen deshalb sowohl die Gruppenordnung
+als auch die Struktur der zugrunde liegenden
+Gruppe berücksichtigt werden.
+
+
+\subsection{Erfolgreiche Täuschung ohne Schlüsselkenntnis}
+
+Neben der vollständigen Rückgewinnung des geheimen
+Schlüssels besteht ein weiteres Angriffsziel darin,
+eine einzelne Protokollausführung erfolgreich
+abzuschließen, ohne den privaten Schlüssel zu kennen.
+
+Wie in Abschnitt~\ref{sec:protokoll} gezeigt wurde,
+kann ein Teilnehmer ein akzeptierendes Transkript
+für eine im Voraus festgelegte Challenge erzeugen.
+
+Hierzu wählt er eine Challenge $c'$ und eine
+Response $s'$ und berechnet
+\[
+    t'=g^{s'}y^{-c'}.
+\]
+
+Sendet er dieses Commitment an einen ehrlichen
+Verifier, so kann er die vorbereitete Response
+verwenden, falls die tatsächliche Challenge
+mit der zuvor gewählten Challenge übereinstimmt.
+
+Für eine unabhängige und gleichverteilt aus
+$\Z_q$ gewählte Challenge gilt
+\begin{equation}\label{eq:taeuschungswahrscheinlichkeit}
+    \Pr[c=c']=\frac{1}{q}.
+\end{equation}
+
+Dies ist die Erfolgswahrscheinlichkeit dieser
+konkreten Strategie und entspricht dem in
+Abschnitt~\ref{sec:protokoll} beschriebenen
+Wissensfehler.
+
+Sie darf nicht als allgemeine obere Schranke
+für sämtliche denkbaren Angriffe interpretiert
+werden.
+
+\paragraph{Beispiel mit kleinen Parametern.}
+
+Für die verwendete Lernumgebung mit $q=11$
+beträgt die Erfolgswahrscheinlichkeit
+\[
+    \Pr[c=c']
+        =\frac{1}{11}
+        \approx 9{,}09\,\%.
+\]
+
+Ein Angreifer hätte mit dieser Strategie
+somit bereits bei einer einzelnen Protokollrunde
+eine vergleichsweise hohe Erfolgswahrscheinlichkeit.
+
+\paragraph{Beispiel mit realistischen Größenordnungen.}
+
+Bei einer Challenge aus einem Wertebereich mit
+$2^{128}$ gleichwahrscheinlichen Möglichkeiten
+beträgt die Erfolgswahrscheinlichkeit des
+einfachen Ratens
+\[
+    \Pr[c=c']=2^{-128}
+    \approx 2{,}94\cdot 10^{-39}.
+\]
+
+Werden mehrere unabhängige Authentifizierungsversuche
+zugelassen, steigt die Wahrscheinlichkeit,
+mindestens einen erfolgreichen Versuch zu erzielen.
+
+Für $k$ unabhängige Versuche mit einer jeweiligen
+Erfolgswahrscheinlichkeit von $1/q$ ergibt sich
+\[
+    P_k=1-\left(1-\frac{1}{q}\right)^k.
+\]
+
+Für $k\ll q$ kann diese Wahrscheinlichkeit durch
+\[
+    P_k\approx\frac{k}{q}
+\]
+angenähert werden.
+
+In praktischen Anwendungen können zusätzliche
+Maßnahmen, beispielsweise die Begrenzung der
+Anzahl von Authentifizierungsversuchen, das Risiko
+solcher Online-Angriffe weiter reduzieren.
+
+
+\subsection{Rechenaufwand des legitimen Protokolls}
+
+Neben dem Aufwand möglicher Angriffe ist auch die
+Effizienz des Protokolls für legitime Teilnehmer
+von Bedeutung.
+
+Das Schnorr-Identifikationsprotokoll ist
+vergleichsweise effizient, da es nur wenige
+aufwendige Gruppenoperationen benötigt.
+
+Der Prover führt pro Protokollausführung im
+Wesentlichen folgende Berechnungen durch:
+\[
+    t=g^r
+\]
+und
+\[
+    s=(r+cx)\bmod q.
+\]
+
+Die Berechnung des Commitments erfordert eine
+Gruppenexponentiation.
+
+Die Berechnung der Response besteht hingegen
+lediglich aus einer modularen Multiplikation
+und einer modularen Addition.
+
+Der Verifier überprüft anschließend
+\[
+    g^s=t\,y^c.
+\]
+
+Eine direkte Implementierung benötigt hierfür
+zwei Gruppenexponentiationen und eine
+Gruppenmultiplikation.
+
+Durch Verfahren zur simultanen Exponentiation
+kann der Rechenaufwand der Verifikation
+reduziert werden.
+
+Tabelle~\ref{tab:legitimer-aufwand} fasst die
+wesentlichen Berechnungen zusammen.
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        Partei & Berechnung & Aufwand\\
+        \midrule
+        Prover
+            & $t=g^r$
+            & Eine Exponentiation\\
+        Prover
+            & $s=(r+cx)\bmod q$
+            & Skalare Arithmetik\\
+        Verifier
+            & $g^s\stackrel{?}{=}t\,y^c$
+            & Zwei Exponentiationen\\
+        \bottomrule
+    \end{tabular}
+    \caption{Wesentliche Berechnungen einer regulären
+    Schnorr-Identifikation ohne zusätzliche
+    Parameter- und Schlüsselvalidierung.
+    Eigene Darstellung.}
+    \label{tab:legitimer-aufwand}
+\end{table}
+
+Die Anzahl benötigter Gruppenoperationen für
+eine einzelne Exponentiation wächst bei Verwendung
+geeigneter Algorithmen, beispielsweise Square-and-Multiply,
+nur logarithmisch mit der Größe des Exponenten.
+
+Bei einem Exponenten aus $\Z_q$ ergibt sich
+ein Aufwand von
+\[
+    \mathcal{O}(\log q)
+\]
+Gruppenoperationen.
+
+Damit besteht ein erheblicher Unterschied
+zwischen dem Aufwand der legitimen Teilnehmer
+und dem Aufwand eines generischen Angreifers:
+\[
+    \mathcal{O}(\log q)
+    \qquad\text{gegenüber}\qquad
+    \mathcal{O}(\sqrt{q}).
+\]
+
+Diese Asymmetrie ist eine wesentliche Grundlage
+der praktischen Einsetzbarkeit des Verfahrens.
+
+Weitere Ausführungen zur Effizienz der verwandten
+nichtinteraktiven Variante finden sich in
+\cite[Abschnitte 2.4 und 3.4]{hao2017}.
+
+
 \subsection{Anwendungsfälle und verwandte Verfahren}
-\todo{Quellenbelegte Anwendungsfälle recherchieren. Zwischen direkter
- interaktiver Identifikation und darauf aufbauenden Verfahren unterscheiden.
- Die nichtinteraktive Variante und Schnorr-Signaturen nur als Ausblick behandeln.
- RFC~8235 beschreibt die nichtinteraktive Variante: \cite{hao2017}.}
+
+Das Schnorr-Identifikationsprotokoll stellt ein
+grundlegendes kryptografisches Verfahren dar,
+das sowohl zur direkten Identifikation als
+auch als Baustein komplexerer Verfahren
+eingesetzt werden kann.
+
+Dabei muss zwischen dem ursprünglichen interaktiven
+Protokoll und den daraus abgeleiteten Verfahren
+unterschieden werden.
+
+
+\subsubsection{Interaktive Schlüsselauthentifizierung}
+
+Ein grundlegender Anwendungsfall des
+Schnorr-Identifikationsprotokolls ist die
+Authentifizierung eines Teilnehmers anhand
+eines asymmetrischen Schlüsselpaares.
+
+Bei einer Registrierung erzeugt der Teilnehmer
+einen privaten Schlüssel $x$ und hinterlegt
+den zugehörigen öffentlichen Schlüssel
+\[
+    y=g^x.
+\]
+
+Bei einer späteren Anmeldung weist der Teilnehmer
+mithilfe des interaktiven Schnorr-Protokolls
+nach, dass er den zum registrierten öffentlichen
+Schlüssel gehörenden privaten Schlüssel kennt.
+
+Der private Schlüssel wird dabei nicht an
+den authentifizierenden Server übertragen.
+
+Dieser Ansatz unterscheidet sich von einer
+klassischen passwortbasierten Authentifizierung,
+bei der ein gemeinsames Geheimnis beziehungsweise
+eine daraus abgeleitete Information zur
+Überprüfung verwendet wird.
+
+Bei einer schlüsselbasierten Authentifizierung
+muss der Server hingegen lediglich den
+öffentlichen Schlüssel zur Überprüfung
+des mathematischen Nachweises speichern.
+
+Die Offenlegung des öffentlichen Schlüssels
+ermöglicht unter der Annahme der Schwierigkeit
+des diskreten Logarithmusproblems keine
+effiziente Berechnung des privaten Schlüssels.
+
+Allerdings sind für eine sichere praktische
+Authentifizierung zusätzliche Mechanismen
+erforderlich.
+
+Dazu zählen insbesondere eine vertrauenswürdige
+Registrierung des öffentlichen Schlüssels, der
+Schutz des privaten Schlüssels und die Bindung
+der Authentifizierung an die vorgesehene
+Gegenstelle.
+
+Die hier beschriebene Anwendung stellt einen
+konzeptionellen Anwendungsfall des interaktiven
+Protokolls dar und ist nicht mit einem bestimmten
+standardisierten Anmeldedienst gleichzusetzen.
+
+
+\subsubsection{Nichtinteraktive Wissensnachweise}
+
+Eine wesentliche Erweiterung des Schnorr-Protokolls
+ist der nichtinteraktive Zero-Knowledge-Nachweis.
+
+Im Gegensatz zur ursprünglichen interaktiven
+Variante muss der Verifier keine zufällige
+Challenge an den Prover übertragen.
+
+Stattdessen wird die Challenge mittels einer
+kryptografischen Hashfunktion aus dem Commitment,
+dem öffentlichen Schlüssel und weiteren
+Kontextinformationen abgeleitet.
+
+Diese Transformation geht auf das
+Fiat-Shamir-Verfahren zurück und wurde bereits
+in Abschnitt~\ref{sec:protokoll} vorgestellt.
+
+RFC~8235 beschreibt eine konkrete nichtinteraktive
+Variante des Schnorr-Protokolls sowohl für
+multiplikative Untergruppen endlicher Körper
+als auch für elliptische Kurven.
+
+Das Dokument ist als informatorischer RFC
+veröffentlicht und beschreibt unter anderem
+Anwendungsfälle sowie sicherheitsrelevante
+Implementierungsvoraussetzungen.
+
+Nichtinteraktive Wissensnachweise können als
+Baustein kryptografischer Protokolle verwendet
+werden, um die Kenntnis eines diskreten
+Logarithmus nachzuweisen, ohne den zugrunde
+liegenden Exponenten offenzulegen
+\cite[Abschnitte 2, 3 und 5]{hao2017}.
+
+
+\subsubsection{Passwortauthentifizierter Schlüsselaustausch}
+
+Ein konkreter Anwendungsfall des nichtinteraktiven
+Schnorr-Wissensnachweises ist das J-PAKE-Protokoll
+(\emph{Password-Authenticated Key Exchange by Juggling}).
+
+J-PAKE ermöglicht es zwei Parteien, auf Grundlage
+eines gemeinsam bekannten Passworts einen
+kryptografischen Sitzungsschlüssel auszuhandeln.
+
+Hierzu tauschen die Teilnehmer unter anderem
+Gruppenelemente aus, deren zugehörige Exponenten
+sie mithilfe von Schnorr-Wissensnachweisen
+nachweisen.
+
+Diese Nachweise dienen dazu, die korrekte
+Erzeugung bestimmter Protokollwerte zu überprüfen,
+ohne die jeweiligen geheimen Exponenten zu
+übertragen.
+
+Das Verfahren wird in RFC~8236 beschrieben
+\cite[Abschnitte 1 und 2]{hao2017jpake}.
+
+Der Anwendungsfall verdeutlicht, dass Schnorr-Nachweise
+auch innerhalb komplexerer kryptografischer
+Protokolle eingesetzt werden können.
+
+Dabei handelt es sich nicht um eine unmittelbare
+Ausführung des ursprünglichen interaktiven
+Identifikationsprotokolls, sondern um die
+Integration seiner nichtinteraktiven Variante
+in ein umfassenderes Schlüsselaustauschverfahren.
+
+
+\subsubsection{Nachweis des Besitzes eines privaten
+Schlüssels}
+
+Ein weiterer möglicher Anwendungsfall ist der
+sogenannte \emph{Proof of Possession} (PoP)
+bei der Registrierung eines öffentlichen
+Schlüssels.
+
+Beispielsweise kann eine Zertifizierungsstelle
+vor der Ausstellung eines digitalen Zertifikats
+einen Nachweis verlangen, dass der Antragsteller
+tatsächlich über den zum eingereichten öffentlichen
+Schlüssel gehörenden privaten Schlüssel verfügt.
+
+Ein Schnorr-Wissensnachweis kann für einen
+solchen Nachweis verwendet werden, sofern er
+eindeutig an den jeweiligen Registrierungsvorgang
+gebunden ist.
+
+Hierzu können beispielsweise Informationen
+über die Zertifizierungsstelle, den Antragsteller
+oder den konkreten Vorgang in die Berechnung
+der nichtinteraktiven Challenge einbezogen
+werden.
+
+RFC~8235 nennt diesen Anwendungsfall ausdrücklich
+als mögliche Verwendung des Schnorr-Nachweises
+\cite[Abschnitt 5]{hao2017}.
+
+Dadurch wird nicht automatisch die tatsächliche
+Identität des Antragstellers nachgewiesen.
+
+Der Nachweis bezieht sich zunächst ausschließlich
+auf die Kenntnis des zum öffentlichen Schlüssel
+gehörenden privaten Schlüssels.
+
+Die Überprüfung der Identität stellt einen
+zusätzlichen organisatorischen und technischen
+Prozess dar.
+
+
+\subsubsection{Schnorr-Signaturen}
+
+Eine weitere wichtige Entwicklung auf Grundlage
+des Schnorr-Identifikationsprotokolls sind
+digitale Schnorr-Signaturen.
+
+Bei digitalen Signaturen wird der Nachweis
+mit einer konkreten Nachricht verknüpft.
+
+In einer vereinfachten Darstellung wird die
+Challenge aus dem Commitment, dem öffentlichen
+Schlüssel und der zu signierenden Nachricht
+$m$ abgeleitet:
+\[
+    c=H(t,y,m)\bmod q.
+\]
+
+Anschließend wird die Response wie beim
+interaktiven Protokoll berechnet:
+\[
+    s=(r+cx)\bmod q.
+\]
+
+Eine mögliche abstrakte Darstellung der
+Signatur ist
+\[
+    \sigma=(t,s).
+\]
+
+Der Verifier berechnet die Challenge aus
+den öffentlichen Informationen erneut und
+überprüft die zugehörige Verifikationsgleichung.
+
+Diese Darstellung verdeutlicht lediglich
+den mathematischen Zusammenhang zwischen
+Schnorr-Identifikation und Schnorr-Signaturen.
+
+Konkrete Signaturstandards definieren zusätzliche
+Vorgaben für die Kodierung der Werte,
+die Erzeugung temporärer Skalare und die
+Verwendung der Hashfunktion.
+
+Ein praktisches Beispiel für den Einsatz
+von Schnorr-Signaturen ist Bitcoin.
+
+Mit dem Bitcoin Improvement Proposal 340
+(BIP~340) wurde ein Schnorr-Signaturverfahren
+auf Grundlage der elliptischen Kurve
+secp256k1 spezifiziert
+\cite{wuille2020bip340}.
+
+Schnorr-Signaturen werden dort im Rahmen von
+Taproot zur Autorisierung entsprechender
+Transaktionen eingesetzt.
+
+Dieser Anwendungsfall zeigt die praktische
+Bedeutung der mathematischen Prinzipien des
+Schnorr-Protokolls, obwohl nicht das
+ursprüngliche interaktive Identifikationsverfahren
+ausgeführt wird.
+
+
+\subsubsection{Abgrenzung zu modernen Passkeys}
+
+Auch moderne passwortlose Authentifizierungsverfahren,
+wie beispielsweise Passkeys, verwenden asymmetrische
+Schlüsselpaare und kryptografische Nachweise
+über den Besitz eines privaten Schlüssels.
+
+Dadurch besteht eine konzeptionelle Ähnlichkeit
+zum Schnorr-Identifikationsprotokoll.
+
+Passkeys sind jedoch nicht mit dem
+Schnorr-Protokoll gleichzusetzen.
+
+Sie beruhen auf den durch FIDO2 und WebAuthn
+definierten Authentifizierungsmechanismen und
+können unterschiedliche digitale
+Signaturverfahren verwenden.
+
+Darüber hinaus werden die Authentifizierungsdaten
+an den jeweiligen Webdienst und den
+Authentifizierungsvorgang gebunden.
+
+Die Gemeinsamkeit besteht somit vor allem
+in der Verwendung asymmetrischer Kryptografie
+zur Authentifizierung, ohne den privaten
+Schlüssel an den Server übertragen zu müssen.
+
+Eine direkte Verwendung des interaktiven
+Schnorr-Protokolls durch Passkeys kann daraus
+nicht abgeleitet werden.
+
+
+\subsection{Zusammenfassung}
+
+Die Untersuchung des Angriffsaufwands zeigt,
+dass die Sicherheit des Schnorr-Protokolls
+wesentlich von den gewählten kryptografischen
+Parametern abhängt.
+
+Während eine vollständige Suche nach dem
+geheimen Schlüssel einen Aufwand von
+$\mathcal{O}(q)$ Gruppenoperationen besitzt,
+reduzieren generische Algorithmen wie
+Baby-Step--Giant-Step und Pollard-Rho diesen
+Aufwand auf $\mathcal{O}(\sqrt{q})$.
+
+Für bestimmte mathematische Gruppen können
+darüber hinaus spezialisierte Angriffe
+existieren.
+
+Eine sichere Parameterauswahl muss daher
+sowohl die Gruppenordnung als auch die
+Struktur der zugrunde liegenden Gruppe
+berücksichtigen.
+
+Gleichzeitig benötigen die legitimen Teilnehmer
+des Protokolls vergleichsweise wenige
+Gruppenoperationen.
+
+Diese Kombination aus effizienter regulärer
+Protokollausführung und hohem angenommenem
+Angriffsaufwand macht die zugrunde liegenden
+mathematischen Prinzipien für praktische
+kryptografische Anwendungen interessant.
+
+Die betrachteten Anwendungsfälle verdeutlichen
+zudem, dass das Schnorr-Protokoll nicht nur
+als eigenständiges Identifikationsverfahren,
+sondern insbesondere als Grundlage für
+nichtinteraktive Wissensnachweise, komplexere
+Schlüsselaustauschprotokolle und digitale
+Signaturen von Bedeutung ist.
