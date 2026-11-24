@@ -1,27 +1,50 @@
 \section{Die Schnorr-Identifikation}\label{sec:protokoll}
 \subsection{Schlüssel, Ablauf und Korrektheit}
-Öffentlich sind $\G$, $q$ und $g$. Der Prover wählt den privaten Schlüssel $x$ zufällig aus $\Z_q\setminus\{0\}$ und veröffentlicht $y=g^x$. Das Protokoll besteht aus drei Nachrichten:
+Öffentlich sind $\G$, die prime Ordnung $q$ und der Generator $g$. 
+%Der Prover wählt den gemeinsamen privaten Schlüssel $x$ $\in$ $\Z_q\setminus\{0\}$ und veröffentlicht $y=g^x$. 
+Der Prover veröffentlicht $y=g^x$, wobei $x$ $\in$ $\Z_q\setminus\{0\}$ der gemeinsame Geheimschlüssel ist. 
+Das Protokoll besteht aus drei Nachrichten:
 \begin{enumerate}
 \item \textbf{Commitment:} Der Prover wählt einen frischen, geheimen Zufallswert $r\in\Z_q$ und sendet $t=g^r$.
-\item \textbf{Challenge:} Der Verifier wählt erst danach unabhängig und gleichverteilt $c\in\Z_q$ und sendet $c$.
-\item \textbf{Response:} Der Prover sendet $s=(r+cx)\bmod q$. Nach Validierung der Werte akzeptiert der Verifier genau dann, wenn
+\item \textbf{Challenge:} Der Verifier wählt erst danach zufällig $c\in\Z_q$ und sendet $c$.
+\item \textbf{Response:} Der Prover sendet $s\equiv(r+cx)\bmod q$. Nach Validierung der Werte akzeptiert der Verifier genau dann, wenn
 \begin{equation}\label{eq:pruefung}
  g^s=t\,y^c.
 \end{equation}
 \end{enumerate}
-Die Prüfung erfolgt in $\G$, bei der Körperdarstellung modulo $p$. Erforderlich sind gültige Gruppenparameter, $y\in\G\setminus\{1\}$, $t\in\G$ und $c,s\in\Z_q$. Das Transkript $(t,c,s)$ enthält weder $x$ noch $r$. Für ehrliche Teilnehmer gilt $g^s=g^{r+cx}=g^r(g^x)^c=t\,y^c$; die Reduktion modulo $q$ ändert wegen $g^q=1$ nichts. Dies begründet die Vollständigkeit.
+Erforderlich für die Prüfung sind gültige Gruppenparameter, 
+$y\in\G\setminus\{1\}$, $t\in\G$ und $c,s\in\Z_q$. Das Tripel $(t,c,s)$ enthält weder $x$ noch $r$. 
+Für ehrliche Teilnehmer gilt $g^s=g^{r+cx}=g^r(g^x)^c=t\,y^c$; die Reduktion modulo $q$ ändert wegen $g^q=1$ nichts. Dies begründet die Vollständigkeit.
 
-Der Prover benötigt im Wesentlichen eine Exponentiation, der Verifier unmittelbar zwei. Übertragen werden ein Gruppenelement und zwei Skalare. Das Commitment lässt sich vorberechnen, wenn $(r,t)$ sicher gespeichert und nur einmal verwendet wird \cite{schnorr1991}.
+Der Prover benötigt im Wesentlichen einen Exponenten, der Verifier unmittelbar zwei. 
+Übertragen werden nur das Gruppenelement $t \in \G$ und die zwei Exponenten $c, s \in \Z_q\setminus\{0\}$. 
+Das Commitment lässt sich vorberechnen, wenn $(r,t)$ sicher gespeichert und nur einmal verwendet wird \cite{schnorr1991}.
 
 \clearpage
 \subsection{Wissensnachweis und Zero Knowledge}
-Zwei akzeptierende Transkripte $(t,c_1,s_1)$ und $(t,c_2,s_2)$ mit gleichem Commitment und $c_1\neq c_2$ ergeben $g^{s_1-s_2}=y^{c_1-c_2}$. Da $q$ prim ist, lässt sich das Geheimnis extrahieren:
+Zwei akzeptierende Tripel $(t,c_1,s_1)$ und $(t,c_2,s_2)$ mit gleichem Commitment $t \in \G$ und $c_1,c_2 \in \Z_q\setminus\{0\}, c_1\neq c_2$ ergeben $g^{s_1-s_2}=y^{c_1-c_2}$. Da $q$ prim ist, lässt sich das Geheimnis extrahieren:
 \begin{equation}\label{eq:extraktion}
  x=(s_1-s_2)(c_1-c_2)^{-1}\bmod q.
 \end{equation}
-Dies ist die spezielle Soundness: Wer unterschiedliche Challenges zum selben Commitment beantworten kann, ermöglicht die Gewinnung des Schlüssels. Ein vollständiger Wissensbeweis benötigt zusätzlich einen formalen Extraktor und ein festgelegtes Angreifermodell.
+Die Gefahr ist also: Wer unterschiedliche Challenges zum selben Commitment beantworten kann, ermöglicht die Gewinnung des Schlüssels. Ein vollständiger Wissensbeweis benötigt zusätzlich einen formalen Extraktor und ein festgelegtes Angreifermodell.
 
-Für \emph{Honest-Verifier Zero Knowledge} wählt ein Simulator ohne $x$ zunächst $c,s$ gleichverteilt und berechnet $t=g^s y^{-c}$. Das Transkript ist gültig und genauso verteilt wie eine ehrliche Ausführung, weil $s=r+cx$ für festes $c$ gleichverteilt ist. Ein ehrlicher Verifier erhält somit keine zusätzliche Information über $x$ \cite{schnorr1991,hao2017}. Der Simulator legt $c$ vor $t$ fest; ein realer Prover muss dagegen zuerst $t$ senden. Eine für eine geratene Challenge vorbereitete Antwort gelingt daher mit Wahrscheinlichkeit $1/q$, bei Challenge-Menge $C$ mit $1/|C|$. Dies ist keine universelle Schranke für alle Angriffe.
+%Um \emph{Honest-Verifier Zero Knowledge} zu zeigen wählt ein Simulator ohne $x$ zunächst $c,s$ gleichverteilt und berechnet $t=g^s y^{-c}$. Das Tripel $(t,c,s)$ ist gültig und genauso verteilt wie eine ehrliche Ausführung, weil $s=r+cx$ für festes $c$ gleichverteilt ist. Ein ehrlicher Verifier erhält somit keine zusätzliche Information über $x$ \cite{schnorr1991,hao2017}. Der Simulator legt $c$ vor $t$ fest; ein realer Prover muss dagegen zuerst $t$ senden. Eine für eine geratene Challenge vorbereitete Antwort gelingt daher mit Wahrscheinlichkeit $1/q$, bei Challenge-Menge $C$ mit $1/|C|$. Dies ist keine universelle Schranke für alle Angriffe.
+%Dabei bedeutet \emph{Honest-Verifier Zero Knowledge}, dass man mithilfe der öffentlichen oder übertragenen Daten keine Kenntnisse über den geheimen Schlüssel $x$ sammelt. 
+%Ein Angreifer, der den also geheimen Schlüssel nicht kennt, kann nicht einfach beliebig gültige Antworten auf die Challenge des Verifiers erzeugen.
 
+Um \emph{Honest-Verifier Zero Knowledge} zu zeigen, wählen wir einen sogenannten Simulator.
+Dieser arbeitet vollständig allein und kennt nur die öffentlichen Informationen $\G, g\in \G, q \in \mathbb P, y\in \G$. 
+Dieser hat also keinerlei Kenntniss über den geheimen Schlüssel $x \in \Z_q\setminus\{0\}$. 
+Wählt er nun $c, s \in \Z_q\setminus\{0\}$ zufällig, so kann er durch 
+\[
+    t = g^s y^{-1}
+\]
+ein Commitment berechnen und erhält somit ein gültiges Tripel $(t,c,s)$ ohne jemals mit einem echten Prover oder Verifier gesprochen zu haben.
+Dennoch hat der Simulator keinerlei Kenntniss über den geheimen Schlüssel $x$ erlangt, obwohl er nun ein vollständiges gültiges Protokoll vorliegen hat. 
 \subsection{Sicherheitsgrenzen}
-Wiederverwendung von $r$ bei verschiedenen Challenges legt nach Gleichung~\eqref{eq:extraktion} den Schlüssel offen. Ist $r$ bekannt und $c\neq0$, gilt bereits $x=(s-r)c^{-1}\bmod q$. Frische Zufallswerte, geschützte Schlüssel und Seitenkanalschutz sind deshalb unverzichtbar. Frische Challenges erschweren Replay, verhindern aber keine Live-Weiterleitung zwischen echtem Prover und Verifier. Das Grundprotokoll bindet den Nachweis nicht automatisch an einen Dienst oder Kanal. Auch Zero Knowledge gegenüber beliebig abweichenden Verifiern folgt nicht allein aus der beschriebenen Simulation.
+Wiederverwendung von $r \in \Z_q\setminus\{0\} $ bei verschiedenen Challenges legt nach Gleichung~\eqref{eq:extraktion} den Schlüssel offen. 
+Ist $r  \in \Z_q\setminus\{0\} $ bekannt und $c\neq0$, gilt bereits $x\equiv(s-r)c^{-1}\bmod q$. 
+Frische Zufallswerte, geschützte Schlüssel und Seitenkanalschutz sind deshalb unverzichtbar. 
+Frische Challenges erschweren Replay, verhindern aber keine Live-Weiterleitung zwischen echtem Prover und Verifier. 
+Das Grundprotokoll bindet den Nachweis nicht automatisch an einen Dienst oder Kanal. 
+Auch Zero Knowledge gegenüber beliebig abweichenden Verifiern folgt nicht allein aus der beschriebenen Simulation.
