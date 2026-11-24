@@ -2,7 +2,7 @@
 \subsection{Schlüssel, Ablauf und Korrektheit}
 Öffentlich sind $\G$, die prime Ordnung $q$ und der Generator $g$. 
 %Der Prover wählt den gemeinsamen privaten Schlüssel $x$ $\in$ $\Z_q\setminus\{0\}$ und veröffentlicht $y=g^x$. 
-Der Prover veröffentlicht $y=g^x$, wobei $x$ $\in$ $\Z_q\setminus\{0\}$ der gemeinsame Geheimschlüssel ist. 
+Der Prover veröffentlicht $y=g^x$, wobei $x$ $\in$ $\Z_q\setminus\{0\}$ das Geheimnis ist, welches dem Verifier unbekannt ist. 
 Das Protokoll besteht aus drei Nachrichten:
 \begin{enumerate}
 \item \textbf{Commitment:} Der Prover wählt einen frischen, geheimen Zufallswert $r\in\Z_q$ und sendet $t=g^r$.
@@ -26,7 +26,8 @@ Zwei akzeptierende Tripel $(t,c_1,s_1)$ und $(t,c_2,s_2)$ mit gleichem Commitmen
 \begin{equation}\label{eq:extraktion}
  x=(s_1-s_2)(c_1-c_2)^{-1}\bmod q.
 \end{equation}
-Die Gefahr ist also: Wer unterschiedliche Challenges zum selben Commitment beantworten kann, ermöglicht die Gewinnung des Schlüssels. Ein vollständiger Wissensbeweis benötigt zusätzlich einen formalen Extraktor und ein festgelegtes Angreifermodell.
+Die Gefahr ist also: Wer unterschiedliche Challenges zum selben Commitment beantworten kann, ermöglicht die Gewinnung des Geheimnis. 
+Ein vollständiger Wissensbeweis benötigt zusätzlich einen formalen Extraktor und ein festgelegtes Angreifermodell.
 
 %Um \emph{Honest-Verifier Zero Knowledge} zu zeigen wählt ein Simulator ohne $x$ zunächst $c,s$ gleichverteilt und berechnet $t=g^s y^{-c}$. Das Tripel $(t,c,s)$ ist gültig und genauso verteilt wie eine ehrliche Ausführung, weil $s=r+cx$ für festes $c$ gleichverteilt ist. Ein ehrlicher Verifier erhält somit keine zusätzliche Information über $x$ \cite{schnorr1991,hao2017}. Der Simulator legt $c$ vor $t$ fest; ein realer Prover muss dagegen zuerst $t$ senden. Eine für eine geratene Challenge vorbereitete Antwort gelingt daher mit Wahrscheinlichkeit $1/q$, bei Challenge-Menge $C$ mit $1/|C|$. Dies ist keine universelle Schranke für alle Angriffe.
 %Dabei bedeutet \emph{Honest-Verifier Zero Knowledge}, dass man mithilfe der öffentlichen oder übertragenen Daten keine Kenntnisse über den geheimen Schlüssel $x$ sammelt. 
@@ -34,13 +35,16 @@ Die Gefahr ist also: Wer unterschiedliche Challenges zum selben Commitment beant
 
 Um \emph{Honest-Verifier Zero Knowledge} zu zeigen, wählen wir einen sogenannten Simulator.
 Dieser arbeitet vollständig allein und kennt nur die öffentlichen Informationen $\G, g\in \G, q \in \mathbb P, y\in \G$. 
-Dieser hat also keinerlei Kenntniss über den geheimen Schlüssel $x \in \Z_q\setminus\{0\}$. 
+Dieser hat also keinerlei Kenntniss über das Geheimnis $x \in \Z_q\setminus\{0\}$. 
 Wählt er nun $c, s \in \Z_q\setminus\{0\}$ zufällig, so kann er durch 
 \[
     t = g^s y^{-1}
 \]
 ein Commitment berechnen und erhält somit ein gültiges Tripel $(t,c,s)$ ohne jemals mit einem echten Prover oder Verifier gesprochen zu haben.
 Dennoch hat der Simulator keinerlei Kenntniss über den geheimen Schlüssel $x$ erlangt, obwohl er nun ein vollständiges gültiges Protokoll vorliegen hat. 
+
+Die Wahrscheinlichkeit als Angreifer, also vermeintlicher Prover, eine passende Antwort $s  \in \Z_q$ zu übermitteln beträgt somit ungefähr $1/q$. 
+
 \subsection{Sicherheitsgrenzen}
 Wiederverwendung von $r \in \Z_q\setminus\{0\} $ bei verschiedenen Challenges legt nach Gleichung~\eqref{eq:extraktion} den Schlüssel offen. 
 Ist $r  \in \Z_q\setminus\{0\} $ bekannt und $c\neq0$, gilt bereits $x\equiv(s-r)c^{-1}\bmod q$. 

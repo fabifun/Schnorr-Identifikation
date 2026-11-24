@@ -1,6 +1,10 @@
 \section{Einleitung und Problemstellung}\label{sec:einleitung}
 Wie kann eine Partei beweisen, dass sie einen geheimen Schlüssel kennt, ohne ihn offenzulegen? Diese Frage ist für die Authentifizierung zentral: Wer sein Geheimnis zur Prüfung übermittelt, ermöglicht dem Empfänger grundsätzlich dessen spätere Verwendung. Asymmetrische Verfahren trennen deshalb einen privaten Schlüssel von einem öffentlich überprüfbaren Wert.
 
+Anschaulich könnte man sich geladene Gäste, die über ein gemeinsames Geheimnis verfügen, einen Türsteher und einen Nachtclub vorstellen. 
+Der Türsteher soll nichts über das Geheimnis erfahren, aber trotzdem genau alle Gäste, die das Geheimnis kennen, in den Club lassen. 
+Mittels der Schnorridentifikation wäre dies umsetzbar.
+
 Die von Claus-Peter Schnorr auf der CRYPTO~'89 vorgestellte Identifikation liefert hierfür einen effizienten Ansatz; der Konferenzbeitrag erschien 1990, eine ausführlichere Veröffentlichung 1991 \cite{schnorr1989,schnorr1991}. Ein \emph{Prover} weist einem \emph{Verifier} in drei Nachrichten die Kenntnis eines diskreten Logarithmus nach. Der Verifier benötigt dazu nur den öffentlichen Schlüssel. Die Zuordnung dieses Schlüssels zu einer Person oder einem Gerät muss allerdings außerhalb des Protokolls vertrauenswürdig erfolgen.
 
 Diese Arbeit untersucht, wie der Nachweis mathematisch funktioniert und unter welchen Voraussetzungen er sicher und praktisch sinnvoll ist. Nach den Grundlagen folgen Protokoll und Sicherheitsargumente, ein Zahlenbeispiel mit Aufwandsabschätzung sowie die Bewertung. Die Darstellung ist theoretisch; auf weiterführende Beweise wird in der Fachliteratur verwiesen. Identifikation ist dabei von Verschlüsselung und digitalen Signaturen zu unterscheiden: Sie bestätigt Schlüsselkenntnis in einer Interaktion, verschlüsselt aber keine Nachrichten und erzeugt nicht automatisch eine Signatur.

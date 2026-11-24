@@ -63,3 +63,13 @@ Alle `\todo{...}` abarbeiten, optionale Teile bereinigen, Quellenstellen prüfen
 Datum anpassen und `\entwurftrue` auf `\entwurffalse` setzen. Das Ausblenden
 ersetzt nicht das Abarbeiten der Hinweise. PDF auf Umbrüche, Literatur und
 unaufgelöste Referenzen prüfen.
+
+## Masterarbeit Idee
+
+Kann man mithilfe der Schnorridentifikation eine sichere anonyme Wahl durchführen? 
+Zunächst könnte man mit der Schnorridentifikation beweisen, dass man wahlberechtigt ist
+und im Geheimnis `x` ist dann die eigene Wahl kodiert. Der Verifier selbst wertet
+die Wahl nicht aus, sondern sendet zunächst die bekannten Informationen an eine
+weitere Instanz, die dann letztlich das Geheimnis `x` dekodieren kann und daraus 
+die eigene Wahl ermitteln kann, ohne zu wissen, wer gewählt hat. 
+Wäre das mathematisch und technisch so umsetzbar?
